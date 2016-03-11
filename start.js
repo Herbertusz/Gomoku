@@ -1,40 +1,29 @@
-const cluster = require('cluster'),
-      stopSignals = [
-        'SIGHUP', 'SIGINT', 'SIGQUIT', 'SIGILL', 'SIGTRAP', 'SIGABRT',
-        'SIGBUS', 'SIGFPE', 'SIGUSR1', 'SIGSEGV', 'SIGUSR2', 'SIGTERM'
-      ],
-      production = process.env.NODE_ENV == 'production';
+var express = require('express');
+var app = express();
+var http = require('http').Server(app);
+var io = require('socket.io')(http);
 
-let stopping = false;
-
-cluster.on('disconnect', function(worker) {
-  if (production) {
-    if (!stopping) {
-      cluster.fork();
-    }
-  } else {
-    process.exit(1);
-  }
+app.use(express.static(__dirname));
+app.get('/', function(req, res){
+	res.sendFile(__dirname + '/index.html');
 });
 
-if (cluster.isMaster) {
-  const workerCount = process.env.NODE_CLUSTER_WORKERS || 4;
-  console.log(`Starting ${workerCount} workers...`);
-  for (let i = 0; i < workerCount; i++) {
-    cluster.fork();
-  }
-  if (production) {
-    stopSignals.forEach(function (signal) {
-      process.on(signal, function () {
-        console.log(`Got ${signal}, stopping workers...`);
-        stopping = true;
-        cluster.disconnect(function () {
-          console.log('All workers stopped, exiting.');
-          process.exit(0);
-        });
-      });
-    });
-  }
-} else {
-  require('./app.js');
-}
+io.on('connection', function(socket){
+	socket.broadcast.emit('user connected');
+	socket.on('disconnect', function(){
+		io.emit('disconnect');
+	});
+	socket.on('chat message', function(data){
+		socket.broadcast.emit('chat message', data);
+	});
+	socket.on('chat writing', function(data){
+		socket.broadcast.emit('chat writing', data);
+	});
+});
+
+var PORT = process.env.OPENSHIFT_NODEJS_PORT || 8080;
+var IPADDRESS = process.env.OPENSHIFT_NODEJS_IP || '127.0.0.1';
+
+http.listen(PORT, IPADDRESS, function(){
+	console.log('listening on 8080');
+});

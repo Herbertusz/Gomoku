@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Chat</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link rel="stylesheet" href="style.css" />
+	</head>
+	<body>
+		<div id="online">Online: <span class="list"></span></div>
+		<ul id="list"></ul>
+		<div id="indicator"></div>
+		<form action="">
+			<input id="name" type="text" placeholder="Név" autocomplete="off" />
+			<input id="message" type="text" placeholder="Üzenet" autocomplete="off" />
+		</form>
+		<script src="/socket.io/socket.io.js"></script>
+		<script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+		<script>
+			var socket = io();
+			var DOM = {
+				$online : $('#online .list'),
+				$list : $('#list'),
+				$form : $('form'),
+				$name : $('#name'),
+				$message : $('#message'),
+				$indicator : $('#indicator')
+			};
+			var timer = {
+				timerID : null,
+				interval : 1000,
+				event : false,
+				message : ''
+			};
+			var appendMessage = function(data){
+				DOM.$list.append('<li><strong>' + data.name + '</strong>: ' + data.message + '</li>');
+			};
+			var stopWrite = function(name, message){
+				if (message.length > 0){
+					DOM.$indicator.html(name + ' szöveget írt be').show();
+				}
+				else{
+					DOM.$indicator.html('').hide();
+				}
+			};
+			var onlineChange = function(operation, name){
+				var i;
+				var online = DOM.$online.html().split(', ');
+				if (operation === 'add'){
+					online.push(name);
+				}
+				if (operation === 'remove'){
+					i = online.indexOf(name);
+					if (i > -1){
+						online.splice(i, 1);
+					}
+				}
+				DOM.$online.html(online.join(', '));
+			};
+
+			DOM.$form.submit(function(event){
+				var data = {
+					name : DOM.$name.val(),
+					message : DOM.$message.val()
+				};
+				socket.emit('chat message', data);
+				appendMessage(data);
+				DOM.$message.val('');
+				event.preventDefault();
+			});
+			DOM.$message.keyup(function(event){
+				var data = {
+					name : DOM.$name.val(),
+					message : DOM.$message.val()
+				};
+				if (event.which !== 13){
+					socket.emit('chat writing', data);
+				}
+				else{
+					if (DOM.$message.val().length > 0){
+						DOM.$form.trigger("submit");
+					}
+				}
+			});
+			socket.on('user connected', function(){
+				var name = 'Egy arc';
+				//onlineChange('add', name);
+				DOM.$list.append('<li class="highlighted">' + name + ' csatlakozott!</li>');
+			});
+			socket.on('disconnect', function(){
+				var name = 'Egy arc';
+				//onlineChange('remove', name);
+				DOM.$list.append('<li class="highlighted">' + name + ' kilépett!</li>');
+			});
+			socket.on('chat message', function(data){
+				appendMessage(data);
+				stopWrite(data.name, '');
+				window.clearInterval(timer.timerID);
+				timer.timerID = null;
+			});
+			socket.on('chat writing', function(data){
+				timer.event = true;
+				timer.message = data.message;
+				if (!timer.timerID){
+					DOM.$indicator.html(data.name + ' éppen ír...').show();
+					timer.timerID = window.setInterval(function(){
+						if (!timer.event){
+							stopWrite(data.name, timer.message);
+							window.clearInterval(timer.timerID);
+							timer.timerID = null;
+						}
+						timer.event = false;
+					}, timer.interval);
+				}
+			});
+		</script>
+	</body>
+</html>
