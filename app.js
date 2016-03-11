@@ -56,9 +56,9 @@ var server = http.createServer(app);
 var io = require('socket.io')(server);
 io.use(ioSession(session));
 io.on('connection', function(socket){
-	socket.broadcast.emit('user connected', socket.handshake.session.login.user);
+	socket.broadcast.emit('user connected', socket.handshake.session.login ? socket.handshake.session.login.user : '<Vendég>');
 	socket.on('disconnect', function(){
-		io.emit('disconnect', socket.handshake.session.login.user);
+		io.emit('disconnect', socket.handshake.session.login ? socket.handshake.session.login.user : '<Vendég>');
 	});
 	socket.on('chat message', function(data){
 		socket.broadcast.emit('chat message', data);
