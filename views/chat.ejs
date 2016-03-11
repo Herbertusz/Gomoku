@@ -1,0 +1,12 @@
+<div style="margin: 20px 0;">
+	<% if (login){ %>
+		<div id="online">Online: <span class="list"></span></div>
+		<ul id="list"></ul>
+		<div id="form">
+			<div id="indicator"></div>
+			<input id="message" type="text" placeholder="Üzenet" autocomplete="off" />
+		</div>
+	<% }else{ %>
+		Jelentkezzé be!
+	<% } %>
+</div>

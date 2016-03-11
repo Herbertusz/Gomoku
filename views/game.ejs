@@ -1,0 +1,89 @@
+<section class="game">
+	<% if (login){ %>
+		<div id="game-overlay" class="hidden-weak">
+			<div id="form-options" class="form">
+				<div class="error"></div>
+				<div class="label">
+					<span>Pálya mérete:</span>
+					<input class="spinner" type="text" name="gridSize_x" value="20" readonly="readonly" /> x
+					<input class="spinner" type="text" name="gridSize_y" value="15" readonly="readonly" />
+				</div>
+				<div class="label">
+					<span>Nyeréshez szükséges sor/oszlop/átló hossza:</span>
+					<input class="spinner" type="text" name="connectNum" value="5" readonly="readonly" />
+				</div>
+				<div class="label">
+					<span>Játékosok száma:</span>
+					<select name="playerNum">
+						<option value="2" selected="selected">2</option>
+						<option value="3">3</option>
+					</select>
+				</div>
+				<div class="label">
+					<span>Játékosok algoritmusa:</span>
+					<select name="playerAIs[]">
+						<option value="human" selected="selected">human</option>
+					</select>
+					<select name="playerAIs[]">
+						<option value="human" selected="selected">human</option>
+						<option value="random">random</option>
+					</select>
+					<select name="playerAIs[]" disabled="disabled">
+						<option value="human" selected="selected">human</option>
+						<option value="random">random</option>
+					</select>
+				</div>
+				<div class="label">
+					<span>Játékosok neve:</span>
+					<input type="text" name="playerNames[]" value="" placeholder="Saját név" />
+					<input type="text" name="playerNames[]" value="" disabled="disabled" />
+					<input type="text" name="playerNames[]" value="" disabled="disabled" />
+				</div>
+				<div class="label">
+					<span>Játékosok jele:</span>
+					<span data-stone-images="true">
+						<img class="sort-ew" data-stone-image="0" alt="X" src="/images/stone0.png" />
+						<img class="sort-ew" data-stone-image="1" alt="O" src="/images/stone1.png" />
+						<img class="sort-ew" data-stone-image="2" alt="+" src="/images/stone2.png" />
+					</span>
+					<input class="hidden" type="hidden" name="playerStones" value="0,1,2" />
+				</div>
+				<div class="label">
+					<span>Kezdő játékos:</span>
+					<input type="radio" name="firstPlayerID" value="0" checked="checked" />
+					<input type="radio" name="firstPlayerID" value="1" />
+					<input type="radio" name="firstPlayerID" value="2" disabled="disabled" />
+				</div>
+				<button id="start">Start!</button>
+			</div>
+		</div>
+		<div class="gamecontainer">
+			<div class="statusbar">
+				<div class="status">Lépés: <span data-content="currentPlayerName"></span></div>
+				<div class="status">Idő: <span data-content="totalTime"></span></div>
+				<div class="status">Lépések száma: <span data-content="stepNum"></span></div>
+				<div class="loader hidden"></div>
+				<div class="clearfix"></div>
+			</div>
+			<div class="gameplace">
+				<canvas id="gomoku" width="700" height="450">
+					Ide kell valami normális fallback
+				</canvas>
+			</div>
+		</div>
+		<aside>
+			<div class="list">
+				<h2>Játékosok:</h2>
+				<ul data-content="playerList"></ul>
+			</div>
+			<div class="messagebox">
+				<div class="message cloneable"></div>
+			</div>
+		</aside>
+	<% }else{ %>
+		<div style="margin: 20px 0;">
+			Jelentkezzé be!
+		</div>
+	<% } %>
+	<div class="clearfix"></div>
+</section>
