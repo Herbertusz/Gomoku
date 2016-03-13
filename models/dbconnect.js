@@ -1,6 +1,6 @@
 'use strict';
 
-var DB = require('../libs/db');
+var DB = require(appRoot + '/libs/db.js');
 
 DB.connect({
 	host     : process.env.OPENSHIFT_MYSQL_DB_HOST || 'localhost',

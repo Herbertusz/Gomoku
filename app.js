@@ -1,14 +1,17 @@
 'use strict';
 
+var path = require('path');
 var http = require('http');
 var express = require('express');
 var favicon = require('serve-favicon');
-var logger = require('morgan');
+//var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var sessionModule = require('express-session');
 var fileStore = require('session-file-store')(sessionModule);
 var ioSession = require('socket.io-express-session');
+
+global.appRoot = path.resolve(__dirname);
 
 var routes = [
 	['/'      , require('./routes/index') ],
@@ -26,7 +29,7 @@ var session = sessionModule({
 	resave : false,
 	saveUninitialized : false,
 	store : new fileStore({
-		path : './tmp'
+		path : __dirname + '/tmp'
 	})
 });
 
@@ -41,6 +44,21 @@ app.use(cookieParser());
 app.use(express.static(__dirname + '/public'));
 app.use(session);
 
+app.locals.layout = {
+	menu : [
+		{
+			text : 'Előszoba',
+			url : '/'
+		}, {
+			text : 'Amőba',
+			url : '/game'
+		}, {
+			text : 'Chat',
+			url : '/chat'
+		}
+	]
+};
+
 routes.forEach(function(route){
 	app.use(route[0], route[1]);
 });
@@ -52,17 +70,35 @@ app.use(function(req, res, next){
 });
 
 // Websocket
+var getUser = function(session){
+	var userName = '&lt;Vendég&gt;';
+	if (session.login && session.login.loginned){
+		userName = session.login.user;
+	}
+	return userName;
+};
+
+var connectedUsers = {};
 var server = http.createServer(app);
 var io = require('socket.io')(server);
-io.use(ioSession(session));
-io.on('connection', function(socket){
-	socket.broadcast.emit('user connected', socket.handshake.session.login ? socket.handshake.session.login.user : '<Vendég>');
+io.of('/chat').use(ioSession(session));
+io.of('/chat').on('connection', function(socket){
+	var userName = getUser(socket.handshake.session);
+	connectedUsers[socket.id] = userName;
+	socket.broadcast.emit('user connected', userName);
+	io.of('/chat').emit('online change', connectedUsers);
+
 	socket.on('disconnect', function(){
-		io.emit('disconnect', socket.handshake.session.login ? socket.handshake.session.login.user : '<Vendég>');
+		var userName = connectedUsers[socket.id];
+		delete connectedUsers[socket.id];
+		io.of('/chat').emit('disconnect', userName);
+		io.of('/chat').emit('online change', connectedUsers);
 	});
+
 	socket.on('chat message', function(data){
 		socket.broadcast.emit('chat message', data);
 	});
+
 	socket.on('chat writing', function(data){
 		socket.broadcast.emit('chat writing', data);
 	});

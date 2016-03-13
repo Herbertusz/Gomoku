@@ -4,8 +4,8 @@ var express = require('express');
 var router = express.Router();
 var session = require('express-session');
 //var nodemailer = require('nodemailer');
-var HD = require('../libs/hd/hd.datetime.js');
-var DB = require('../models/dbconnect');
+var HD = require(appRoot + '/libs/hd/hd.datetime.js');
+var DB = require(appRoot + '/models/dbconnect');
 
 router.get('/', function(req, res, next){
 
@@ -40,8 +40,7 @@ router.get('/', function(req, res, next){
 			page : 'game',
 			login : req.session.login ? req.session.login.loginned : false,
 			username : req.session.login ? req.session.login.user : '',
-			message : null,
-			menu : ['Amőba']
+			message : null
 		});
 	});
 });

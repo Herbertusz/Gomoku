@@ -338,6 +338,33 @@ HD.Array = {
 			}
 		}
 		return -1;
+	},
+
+	/**
+	 * Hozzáadás tömbhöz, ha még nem tartalmazza az adott értéket
+	 * @param {Array} arr tömb
+	 * @param {Mixed} val érték
+	 * @returns {Array} módosított tömb
+	 */
+	addByVal : function(arr, val){
+		if (arr.indexOf(val) === -1){
+			arr.push(val);
+		}
+		return arr;
+	},
+
+	/**
+	 * Érték eltávolítása a tömbből
+	 * @param {Array} arr tömb
+	 * @param {Mixed} val érték
+	 * @returns {Array} módosított tömb
+	 */
+	removeByVal : function(arr, val){
+		var index = arr.indexOf(val);
+		if (index > -1){
+			arr.slice(index, 1);
+		}
+		return arr;
 	}
 
 };
@@ -366,4 +393,9 @@ HD.Object = {
 
 };
 
-exports.HD = HD;
+exports.Misc = HD.Misc;
+exports.Number = HD.Number;
+exports.String = HD.String;
+exports.Function = HD.Function;
+exports.Array = HD.Array;
+exports.Object = HD.Object;

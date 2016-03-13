@@ -1,6 +1,6 @@
 $(document).ready(function(){
 
-	var socket = io();
+	var socket = io.connect('/chat');
 	var DOM = {
 		$online : $('#online .list'),
 		$list : $('#list'),
@@ -13,6 +13,7 @@ $(document).ready(function(){
 		event : false,
 		message : ''
 	};
+	var onlineUserNames = [];
 	var appendMessage = function(data){
 		DOM.$list.append('<li><strong>' + data.name + '</strong>: ' + data.message + '</li>');
 		DOM.$list.scrollTop(DOM.$list.height());
@@ -59,12 +60,21 @@ $(document).ready(function(){
 	});
 
 	socket.on('user connected', function(name){
-		onlineChange('add', name);
 		DOM.$list.append('<li class="highlighted">' + name + ' csatlakozott!</li>');
 	});
 	socket.on('disconnect', function(name){
-		onlineChange('remove', name);
-		DOM.$list.append('<li class="highlighted">' + name + ' kilépett!</li>');
+		if (onlineUserNames.indexOf(name) > -1){
+			DOM.$list.append('<li class="highlighted">' + name + ' kilépett!</li>');
+		}
+		else {
+			DOM.$list.append('<li class="highlighted">Kapcsolat lezárult!</li>');
+		}
+	});
+	socket.on('online change', function(online){
+		onlineUserNames = Object.keys(online).map(function(id){
+			return online[id];
+		});
+		DOM.$online.html(onlineUserNames.join(', '));
 	});
 	socket.on('chat message', function(data){
 		appendMessage(data);

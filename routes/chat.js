@@ -10,8 +10,7 @@ router.get('/', function(req, res, next){
 		page : 'chat',
 		login : req.session.login ? req.session.login.loginned : false,
 		username : req.session.login ? req.session.login.user : '',
-		message : null,
-		menu : ['Amőba']
+		message : null
 	});
 
 });

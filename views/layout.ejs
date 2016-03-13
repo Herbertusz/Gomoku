@@ -16,14 +16,14 @@
 		</script>
 		<script src="/js/jquery.min.js"></script>
 		<script src="/js/jquery-ui.min.js"></script>
-		<% if (page !== 'chat'){ %>
-			<script src="/js/hd/hd.js"></script>
-			<script src="/js/hd/hd.utility.js"></script>
-			<script src="/js/hd/hd.math.js"></script>
-			<script src="/js/hd/hd.site.js"></script>
-			<script src="/js/hd/hd.datetime.timer.js"></script>
-			<script src="/js/hd/hd.canvas.layer.js"></script>
-			<script src="/js/hd/hd.game.js"></script>
+		<script src="/js/hd/hd.js"></script>
+		<script src="/js/hd/hd.utility.js"></script>
+		<script src="/js/hd/hd.math.js"></script>
+		<script src="/js/hd/hd.site.js"></script>
+		<script src="/js/hd/hd.datetime.timer.js"></script>
+		<script src="/js/hd/hd.canvas.layer.js"></script>
+		<script src="/js/hd/hd.game.js"></script>
+		<% if (page === 'game'){ %>
 			<script src="/js/app/adapter/dom.js"></script>
 			<script src="/js/app/adapter/form.js"></script>
 			<script src="/js/app/adapter/server.js"></script>
@@ -49,8 +49,8 @@
 			<header>
 				<nav>
 					<ul>
-						<% menu.forEach(function(menupoint){ %>
-							<li><a href="#"><%- menupoint %></a></li>
+						<% layout.menu.forEach(function(menupoint){ %>
+							<li><a href="<%- menupoint.url %>"><%- menupoint.text %></a></li>
 						<% }); %>
 					</ul>
 				</nav>

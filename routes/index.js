@@ -3,8 +3,8 @@
 var express = require('express');
 var router = express.Router();
 var session = require('express-session');
-var HD = require('../libs/hd/hd.datetime.js');
-var DB = require('../models/dbconnect');
+var HD = require(appRoot + '/libs/hd/hd.datetime.js');
+var DB = require(appRoot + '/models/dbconnect');
 
 router.get('/', function(req, res, next){
 	var message;
@@ -30,7 +30,6 @@ router.get('/', function(req, res, next){
 			login : req.session.login ? req.session.login.loginned : false,
 			username : req.session.login ? req.session.login.user : '',
 			message : message,
-			menu : ['Amőba'],
 			games : rows
 		});
 	});
