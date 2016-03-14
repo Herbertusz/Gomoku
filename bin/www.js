@@ -9,8 +9,8 @@ var http = require('http');
 //var debug = require('debug')('nodeapp:server');
 
 // Környezet lekérdezése
-console.log(process.env);
-global.DOMAIN = 'gomoku-herbertusz.rhcloud.com';
+global.DOMAIN = process.env.NODE_ENV === 'production' ? 'gomoku-herbertusz.rhcloud.com' : 'localhost';
+global.WSPORT = process.env.NODE_ENV === 'production' ? '8000' : '3000';
 global.PORT = normalizePort(process.env.OPENSHIFT_NODEJS_PORT || '3000');
 global.IPADDRESS = process.env.OPENSHIFT_NODEJS_IP || '127.0.0.1';
 

@@ -45,7 +45,8 @@ app.use(express.static(__dirname + '/public'));
 app.use(session);
 
 app.locals.layout = {
-	domain : global.DOMAIN,
+	DOMAIN : global.DOMAIN,
+	WSPORT : global.WSPORT,
 	menu : [
 		{
 			text : 'Előszoba',

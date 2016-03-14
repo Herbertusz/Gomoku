@@ -1,6 +1,6 @@
 $(document).ready(function(){
 
-	var socket = io.connect('http://' + DOMAIN + ':8000/chat');
+	var socket = io.connect('http://' + DOMAIN + ':' + WSPORT + '/chat');
 	var DOM = {
 		$online : $('#online .list'),
 		$list : $('#list'),
