@@ -1,6 +1,6 @@
 $(document).ready(function(){
 
-	var socket = io.connect('/chat');
+	var socket = io.connect('http://' + DOMAIN + ':8000/chat');
 	var DOM = {
 		$online : $('#online .list'),
 		$list : $('#list'),
@@ -62,19 +62,14 @@ $(document).ready(function(){
 	socket.on('user connected', function(name){
 		DOM.$list.append('<li class="highlighted">' + name + ' csatlakozott!</li>');
 	});
+	socket.on('disconnect', function(name){
+		DOM.$list.append('<li class="highlighted">' + name + ' kilépett!</li>');
+	});
 	socket.on('online change', function(online){
-		var disconnectedUserName;
-		var previous = onlineUserNames;
 		onlineUserNames = Object.keys(online).map(function(id){
 			return online[id];
 		});
 		DOM.$online.html(onlineUserNames.join(', '));
-		disconnectedUserName = previous.find(function(userName){
-			return onlineUserNames.indexOf(userName) === -1;
-		});
-		if (disconnectedUserName){
-			DOM.$list.append('<li class="highlighted">' + disconnectedUserName + ' kilépett!</li>');
-		}
 	});
 	socket.on('chat message', function(data){
 		appendMessage(data);
