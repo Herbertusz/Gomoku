@@ -62,19 +62,19 @@ $(document).ready(function(){
 	socket.on('user connected', function(name){
 		DOM.$list.append('<li class="highlighted">' + name + ' csatlakozott!</li>');
 	});
-	socket.on('disconnect', function(name){
-		if (onlineUserNames.indexOf(name) > -1){
-			DOM.$list.append('<li class="highlighted">' + name + ' kilépett!</li>');
-		}
-		else {
-			DOM.$list.append('<li class="highlighted">Kapcsolat lezárult!</li>');
-		}
-	});
 	socket.on('online change', function(online){
+		var disconnectedUserName;
+		var previous = onlineUserNames;
 		onlineUserNames = Object.keys(online).map(function(id){
 			return online[id];
 		});
 		DOM.$online.html(onlineUserNames.join(', '));
+		disconnectedUserName = previous.find(function(userName){
+			return onlineUserNames.indexOf(userName) === -1;
+		});
+		if (disconnectedUserName){
+			DOM.$list.append('<li class="highlighted">' + disconnectedUserName + ' kilépett!</li>');
+		}
 	});
 	socket.on('chat message', function(data){
 		appendMessage(data);
