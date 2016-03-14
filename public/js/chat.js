@@ -63,7 +63,12 @@ $(document).ready(function(){
 		DOM.$list.append('<li class="highlighted">' + name + ' csatlakozott!</li>');
 	});
 	socket.on('disconnect', function(name){
-		DOM.$list.append('<li class="highlighted">' + name + ' kilépett!</li>');
+		if (name === 'transport close'){
+			DOM.$list.append('<li class="highlighted">Kapcsolat lezárult!</li>');
+		}
+		else {
+			DOM.$list.append('<li class="highlighted">' + name + ' kilépett!</li>');
+		}
 	});
 	socket.on('online change', function(online){
 		onlineUserNames = Object.keys(online).map(function(id){

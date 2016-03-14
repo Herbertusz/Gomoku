@@ -45,7 +45,7 @@ app.use(express.static(__dirname + '/public'));
 app.use(session);
 
 app.locals.layout = {
-	domain : 'gomoku-herbertusz.rhcloud.com',
+	domain : global.DOMAIN,
 	menu : [
 		{
 			text : 'Előszoba',
@@ -71,23 +71,18 @@ app.use(function(req, res, next){
 });
 
 // Websocket
-var getUser = function(session){
-	var userName = '&lt;Vendég&gt;';
-	if (session.login && session.login.loginned){
-		userName = session.login.user;
-	}
-	return userName;
-};
-
 var connectedUsers = {};
 var server = http.createServer(app);
 var io = require('socket.io')(server);
 io.of('/chat').use(ioSession(session));
 io.of('/chat').on('connection', function(socket){
-	var userName = getUser(socket.handshake.session);
-	connectedUsers[socket.id] = userName;
-	socket.broadcast.emit('user connected', userName);
-	io.of('/chat').emit('online change', connectedUsers);
+	var session = socket.handshake.session;
+	var userName = (session.login && session.login.loginned) ? session.login.user : null;
+	if (userName){
+		connectedUsers[socket.id] = userName;
+		socket.broadcast.emit('user connected', userName);
+		io.of('/chat').emit('online change', connectedUsers);
+	}
 
 	socket.on('disconnect', function(){
 		var userName = connectedUsers[socket.id];

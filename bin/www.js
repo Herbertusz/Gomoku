@@ -5,13 +5,18 @@
 
 'use strict';
 
-var app = require('../app');
-//var debug = require('debug')('nodeapp:server');
 var http = require('http');
+//var debug = require('debug')('nodeapp:server');
 
-// Port lekérdezése és tárolása az Express-ben
-var PORT = normalizePort(process.env.OPENSHIFT_NODEJS_PORT || '3000');
-var IPADDRESS = process.env.OPENSHIFT_NODEJS_IP || '127.0.0.1';
+// Környezet lekérdezése
+console.log(process.env);
+global.DOMAIN = 'gomoku-herbertusz.rhcloud.com';
+global.PORT = normalizePort(process.env.OPENSHIFT_NODEJS_PORT || '3000');
+global.IPADDRESS = process.env.OPENSHIFT_NODEJS_IP || '127.0.0.1';
+
+var app = require('../app');
+
+// Port tárolása az Express-ben
 app.set('port', PORT);
 
 // Port figyelése
