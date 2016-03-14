@@ -45,6 +45,7 @@ app.use(express.static(__dirname + '/public'));
 app.use(session);
 
 app.locals.layout = {
+	domain : 'gomoku-herbertusz.rhcloud.com',
 	menu : [
 		{
 			text : 'Előszoba',
@@ -89,12 +90,10 @@ io.of('/chat').on('connection', function(socket){
 	io.of('/chat').emit('online change', connectedUsers);
 
 	socket.on('disconnect', function(){
-		console.log(socket.id);
 		var userName = connectedUsers[socket.id];
-		console.log(userName);
 		delete connectedUsers[socket.id];
 		io.of('/chat').emit('online change', connectedUsers);
-		//io.of('/chat').emit('disconnect', userName);
+		io.of('/chat').emit('disconnect', userName);
 	});
 
 	socket.on('chat message', function(data){
