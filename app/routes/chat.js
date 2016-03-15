@@ -9,7 +9,8 @@ router.get('/', function(req, res, next){
 	res.render('layout', {
 		page : 'chat',
 		login : req.session.login ? req.session.login.loginned : false,
-		username : req.session.login ? req.session.login.user : '',
+		userId : req.session.login ? req.session.login.userId : null,
+		userName : req.session.login ? req.session.login.userName : '',
 		message : null
 	});
 

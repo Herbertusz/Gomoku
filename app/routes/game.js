@@ -5,7 +5,7 @@ var router = express.Router();
 var session = require('express-session');
 //var nodemailer = require('nodemailer');
 var HD = require(appRoot + '/libs/hd/hd.datetime.js');
-var DB = require(appRoot + '/models/dbconnect');
+var DB = require(appRoot + '/app/models/dbconnect.js');
 
 router.get('/', function(req, res, next){
 
@@ -39,7 +39,8 @@ router.get('/', function(req, res, next){
 		res.render('layout', {
 			page : 'game',
 			login : req.session.login ? req.session.login.loginned : false,
-			username : req.session.login ? req.session.login.user : '',
+			userId : req.session.login ? req.session.login.userId : null,
+			userName : req.session.login ? req.session.login.userName : '',
 			message : null
 		});
 	});

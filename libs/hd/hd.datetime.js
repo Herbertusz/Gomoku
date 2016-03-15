@@ -210,7 +210,7 @@ HD.DateTime = {
 	 * A PHP date() függvényének implementációja
 	 * @copyright http://phpjs.org/functions/date
 	 * @param {String} format
-	 * @param {Number} timestamp
+	 * @param {Number} [timestamp]
 	 * @returns {String}
 	 */
 	format : function(format, timestamp){

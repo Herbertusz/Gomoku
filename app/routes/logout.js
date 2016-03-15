@@ -7,7 +7,8 @@ var session = require('express-session');
 router.get('/', function(req, res, next){
 	req.session.login = {
 		loginned : false,
-		user : '',
+		userId : null,
+		userName : '',
 		error : null
 	};
 	res.redirect('/');

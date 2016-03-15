@@ -2,7 +2,7 @@
 <html>
 	<head>
 		<meta charset="utf-8" />
-		<link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+		<link rel="icon" type="image/png" href="/favicon.png" />
 		<link rel="stylesheet" href="/css/bootstrap.min.css" />
 		<link rel="stylesheet" href="/css/jqueryuithemes/jquery-ui.css" />
 		<link rel="stylesheet" href="/css/jqueryuithemes/jquery-ui.structure.css" />
@@ -14,7 +14,10 @@
 		<script>
 			var DOMAIN = '<%- layout.DOMAIN %>';
 			var WSPORT = '<%- layout.WSPORT %>';
-			var userName = '<%- username %>';
+			var userData = {
+				id : '<%- userId %>',
+				name : '<%- userName %>'
+			};
 		</script>
 		<script src="/js/jquery.min.js"></script>
 		<script src="/js/jquery-ui.min.js"></script>
@@ -22,6 +25,7 @@
 		<script src="/js/hd/hd.utility.js"></script>
 		<script src="/js/hd/hd.math.js"></script>
 		<script src="/js/hd/hd.site.js"></script>
+		<script src="/js/hd/hd.datetime.js"></script>
 		<script src="/js/hd/hd.datetime.timer.js"></script>
 		<script src="/js/hd/hd.canvas.layer.js"></script>
 		<script src="/js/hd/hd.game.js"></script>
@@ -81,7 +85,7 @@
 				</div>
 			<% }else{ %>
 				<div class="login">
-					Üdvözöljük, <strong><%- username %></strong>
+					Üdvözöljük, <strong><%- userName %></strong>
 					<a href="/logout">Kijelentkezés</a>
 				</div>
 			<% } %>

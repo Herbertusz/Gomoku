@@ -1,7 +1,7 @@
 'use strict';
 
 var HD = require(appRoot + '/libs/hd/hd.datetime.js');
-var DB = require(appRoot + '/models/dbconnect.js');
+var DB = require(appRoot + '/app/models/dbconnect.js');
 
 var Model = {
 

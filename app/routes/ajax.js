@@ -3,7 +3,7 @@
 var express = require('express');
 var router = express.Router();
 var session = require('express-session');
-var Model = require('../models/game');
+var Model = require(appRoot + '/app/models/game.js');
 
 router.get('/setgame', function(req, res, next){
 	Model.create({
@@ -19,7 +19,8 @@ router.get('/setgame', function(req, res, next){
 		res.render('layout', {
 			page : 'game',
 			login : req.session.login ? req.session.login.loginned : false,
-			username : req.session.login ? req.session.login.user : '',
+			userId : req.session.login ? req.session.login.userId : null,
+			userName : req.session.login ? req.session.login.userName : '',
 			message : null
 		});
 	});

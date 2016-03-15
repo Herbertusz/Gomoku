@@ -3,7 +3,7 @@
 var express = require('express');
 var router = express.Router();
 var session = require('express-session');
-var DB = require('../models/dbconnect');
+var DB = require(appRoot + '/app/models/dbconnect.js');
 
 router.post('/', function(req, res, next){
 	var username, password;
@@ -21,7 +21,8 @@ router.post('/', function(req, res, next){
 			if (rows.length > 0){
 				req.session.login = {
 					loginned : true,
-					user : username,
+					userId : rows[0].id,
+					userName : username,
 					error : null
 				};
 			}

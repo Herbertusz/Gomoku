@@ -1,3 +1,5 @@
+'use strict';
+
 $(document).ready(function(){
 
 	var socket = io.connect('http://' + DOMAIN + ':' + WSPORT + '/chat');
@@ -15,7 +17,8 @@ $(document).ready(function(){
 	};
 	var onlineUserNames = [];
 	var appendMessage = function(data){
-		DOM.$list.append('<li><strong>' + data.name + '</strong>: ' + data.message + '</li>');
+		var time = HD.DateTime.format('Y.m.d. H:i:s', data.time);
+		DOM.$list.append('<li><span>' + time + '</span><strong>' + data.name + '</strong>: ' + data.message + '</li>');
 		DOM.$list.scrollTop(DOM.$list.height());
 	};
 	var stopWrite = function(name, message){
@@ -43,8 +46,10 @@ $(document).ready(function(){
 
 	DOM.$message.keyup(function(event){
 		var data = {
-			name : userName,
-			message : DOM.$message.val()
+			id : userData.id,
+			name : userData.name,
+			message : DOM.$message.val(),
+			time : Math.round(Date.now() / 1000)
 		};
 		if (event.which !== 13){
 			socket.emit('chat writing', data);

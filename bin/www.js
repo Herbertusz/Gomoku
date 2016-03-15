@@ -14,14 +14,14 @@ global.WSPORT = process.env.NODE_ENV === 'production' ? '8000' : '3000';
 global.PORT = normalizePort(process.env.OPENSHIFT_NODEJS_PORT || '3000');
 global.IPADDRESS = process.env.OPENSHIFT_NODEJS_IP || '127.0.0.1';
 
-var app = require('../app');
+var app = require('../app/app.js');
 
 // Port tárolása az Express-ben
 app.set('port', PORT);
 
 // Port figyelése
 app.httpServer.listen(PORT, IPADDRESS, function(){
-	console.log('Listening on ' + PORT);
+	console.log('Listening ' + IPADDRESS + ':' + PORT);
 });
 
 /**

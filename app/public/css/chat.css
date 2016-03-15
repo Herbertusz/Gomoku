@@ -1,0 +1,2 @@
+#form{position:relative;padding:3px;width:100%}#form input{margin-right:10px;border:1px solid #000000;padding:10px}#form input#name{width:10%}#form input#message{width:75%}#form #indicator{margin:5px 0;height:20px;color:#999999}#online{padding:5px 10px;background-color:#dddddd}#list{list-style-type:none;margin:0;padding:0;width:100%;height:300px;overflow-y:scroll}#list li{padding:5px 10px}#list li.highlighted{color:red;font-weight:bold}#list li span{float:right;margin:0 0 0 20px;color:#aaaaaa}
+/*# sourceMappingURL=chat.css.map */
