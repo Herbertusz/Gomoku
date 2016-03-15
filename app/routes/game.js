@@ -41,7 +41,7 @@ router.get('/', function(req, res, next){
 			login : req.session.login ? req.session.login.loginned : false,
 			userId : req.session.login ? req.session.login.userId : null,
 			userName : req.session.login ? req.session.login.userName : '',
-			message : null
+			loginMessage : null
 		});
 	});
 });

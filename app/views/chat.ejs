@@ -1,7 +1,15 @@
 <div style="margin: 20px 0;">
 	<% if (login){ %>
 		<div id="online">Online: <span class="list"></span></div>
-		<ul id="list"></ul>
+		<ul id="list">
+			<% messages.forEach(function(message){ %>
+				<li>
+					<span><%- message.created %></span>
+					<strong><%= message.username %></strong>:
+					<%= message.message %>
+				</li>
+			<% }); %>
+		</ul>
 		<div id="form">
 			<div id="indicator"></div>
 			<input id="message" type="text" placeholder="Üzenet" autocomplete="off" />

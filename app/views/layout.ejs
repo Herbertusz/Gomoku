@@ -68,8 +68,8 @@
 			<% if (!login){ %>
 				<div class="login">
 					<form method="post" action="/login">
-						<% if (message){ %>
-							<label class="error"><%- message %></label>
+						<% if (loginMessage){ %>
+							<label class="error"><%- loginMessage %></label>
 						<% } %>
 						<label>
 							<span>Felhasználónév:</span>

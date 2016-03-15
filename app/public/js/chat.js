@@ -16,9 +16,23 @@ $(document).ready(function(){
 		message : ''
 	};
 	var onlineUserNames = [];
-	var appendMessage = function(data){
+	var appendUserMessage = function(data){
 		var time = HD.DateTime.format('Y.m.d. H:i:s', data.time);
 		DOM.$list.append('<li><span>' + time + '</span><strong>' + data.name + '</strong>: ' + data.message + '</li>');
+		DOM.$list.scrollTop(DOM.$list.height());
+	};
+	var appendSystemMessage = function(type, name){
+		if (type === 'connect'){
+			DOM.$list.append('<li class="highlighted">' + name + ' csatlakozott!</li>');
+		}
+		else if (type === 'disconnect'){
+			if (name === null){
+				DOM.$list.append('<li class="highlighted">Kapcsolat lezárult!</li>');
+			}
+			else {
+				DOM.$list.append('<li class="highlighted">' + name + ' kilépett!</li>');
+			}
+		}
 		DOM.$list.scrollTop(DOM.$list.height());
 	};
 	var stopWrite = function(name, message){
@@ -57,7 +71,7 @@ $(document).ready(function(){
 		else{
 			if (DOM.$message.val().length > 0){
 				socket.emit('chat message', data);
-				appendMessage(data);
+				appendUserMessage(data);
 				DOM.$message.val('');
 				event.preventDefault();
 			}
@@ -65,15 +79,10 @@ $(document).ready(function(){
 	});
 
 	socket.on('user connected', function(name){
-		DOM.$list.append('<li class="highlighted">' + name + ' csatlakozott!</li>');
+		appendSystemMessage('connect', name);
 	});
 	socket.on('disconnect', function(name){
-		if (name === 'transport close'){
-			DOM.$list.append('<li class="highlighted">Kapcsolat lezárult!</li>');
-		}
-		else {
-			DOM.$list.append('<li class="highlighted">' + name + ' kilépett!</li>');
-		}
+		appendSystemMessage('disconnect', name === 'transport close' ? null : name);
 	});
 	socket.on('online change', function(online){
 		onlineUserNames = Object.keys(online).map(function(id){
@@ -82,7 +91,7 @@ $(document).ready(function(){
 		DOM.$online.html(onlineUserNames.join(', '));
 	});
 	socket.on('chat message', function(data){
-		appendMessage(data);
+		appendUserMessage(data);
 		stopWrite(data.name, '');
 		window.clearInterval(timer.timerID);
 		timer.timerID = null;
