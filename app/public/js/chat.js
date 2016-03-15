@@ -16,9 +16,30 @@ $(document).ready(function(){
 		message : ''
 	};
 	var onlineUserNames = [];
+
+
+	var escapeHtml = function(string){
+		var entityMap = {
+			"&" : "&amp;",
+			"<" : "&lt;",
+			">" : "&gt;",
+			'"' : '&quot;',
+			"'" : '&#39;',
+			"/" : '&#x2F;'
+		};
+		return String(string).replace(/[&<>"'\/]/g, function(s){
+			return entityMap[s];
+		});
+	};
 	var appendUserMessage = function(data){
 		var time = HD.DateTime.format('Y.m.d. H:i:s', data.time);
-		DOM.$list.append('<li><span>' + time + '</span><strong>' + data.name + '</strong>: ' + data.message + '</li>');
+		DOM.$list.append('\
+			<li>\
+				<span>' + time + '</span>\
+				<strong>' + escapeHtml(data.name) + '</strong>: \
+				' + escapeHtml(data.message) + '\
+			</li>\
+		');
 		DOM.$list.scrollTop(DOM.$list.height());
 	};
 	var appendSystemMessage = function(type, name){
