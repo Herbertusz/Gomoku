@@ -7,27 +7,31 @@
 
 #form {
 	position: relative;
-	padding: 3px;
 	width: 100%;
 
-	input {
-		margin-right: 10px;
+	textarea {
+		display: b;
 		border: 1px solid #000000;
 		padding: 10px;
-
-		&#name {
-			width: 10%;
-		}
-
-		&#message {
-			width: 75%;
-		}
+		height: 60px;
+		width: 100%;
+		resize: vertical;
 	}
 
 	#indicator {
 		margin: 5px 0;
 		height: 20px;
 		color: #999999;
+	}
+
+	.submitmode {
+		padding: 15px 0;
+
+		button {
+			float: right;
+			font-weight: bold;
+		}
+
 	}
 }
 
@@ -50,6 +54,10 @@
 		&.highlighted {
 			color: red;
 			font-weight: bold;
+		}
+
+		.self {
+			color: #ff0000;
 		}
 
 		span {

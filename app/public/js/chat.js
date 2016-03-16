@@ -7,7 +7,9 @@ $(document).ready(function(){
 		$online : $('#online .list'),
 		$list : $('#list'),
 		$message : $('#message'),
-		$indicator : $('#indicator')
+		$indicator : $('#indicator'),
+		$sendbutton : $('#send'),
+		$sendswitch : $('#sendswitch')
 	};
 	var timer = {
 		timerID : null,
@@ -17,8 +19,8 @@ $(document).ready(function(){
 	};
 	var onlineUserNames = [];
 
-
 	var escapeHtml = function(string){
+		var str;
 		var entityMap = {
 			"&" : "&amp;",
 			"<" : "&lt;",
@@ -27,20 +29,30 @@ $(document).ready(function(){
 			"'" : '&#39;',
 			"/" : '&#x2F;'
 		};
-		return String(string).replace(/[&<>"'\/]/g, function(s){
+		var str = String(string).replace(/[&<>"'\/]/g, function(s){
 			return entityMap[s];
 		});
+		str = str.replace("\n", '<br />');
+		return str;
 	};
-	var appendUserMessage = function(data){
+	var scrollToBottom = function(){
+		var height = 0;
+		DOM.$list.find('li').each(function(){
+			height += $(this).outerHeight();
+		});
+		DOM.$list.scrollTop(height);
+	};
+	var appendUserMessage = function(data, highlighted){
+		highlighted = HD.Misc.funcParam(highlighted, false);
 		var time = HD.DateTime.format('Y.m.d. H:i:s', data.time);
 		DOM.$list.append('\
 			<li>\
 				<span>' + time + '</span>\
-				<strong>' + escapeHtml(data.name) + '</strong>: \
+				<strong class="' + (highlighted ? "self" : "") + '">' + escapeHtml(data.name) + '</strong>: \
 				' + escapeHtml(data.message) + '\
 			</li>\
 		');
-		DOM.$list.scrollTop(DOM.$list.height());
+		scrollToBottom();
 	};
 	var appendSystemMessage = function(type, name){
 		if (type === 'connect'){
@@ -54,7 +66,7 @@ $(document).ready(function(){
 				DOM.$list.append('<li class="highlighted">' + name + ' kilépett!</li>');
 			}
 		}
-		DOM.$list.scrollTop(DOM.$list.height());
+		scrollToBottom();
 	};
 	var stopWrite = function(name, message){
 		if (message.length > 0){
@@ -78,6 +90,16 @@ $(document).ready(function(){
 		}
 		DOM.$online.html(online.join(', '));
 	};
+	var sendMessage = function(data, event){
+		if (data.message.trim().length > 0){
+			socket.emit('chat message', data);
+			appendUserMessage(data, true);
+			DOM.$message.val('');
+			event.preventDefault();
+		}
+	};
+
+	scrollToBottom();
 
 	DOM.$message.keyup(function(event){
 		var data = {
@@ -86,16 +108,30 @@ $(document).ready(function(){
 			message : DOM.$message.val(),
 			time : Math.round(Date.now() / 1000)
 		};
-		if (event.which !== 13){
-			socket.emit('chat writing', data);
+		if (event.which === HD.Misc.keys.ENTER){
+			if (!event.shiftKey && DOM.$sendswitch.prop("checked")){
+				sendMessage(data, event);
+			}
 		}
 		else{
-			if (DOM.$message.val().length > 0){
-				socket.emit('chat message', data);
-				appendUserMessage(data);
-				DOM.$message.val('');
-				event.preventDefault();
-			}
+			socket.emit('chat writing', data);
+		}
+	});
+	DOM.$sendbutton.click(function(event){
+		var data = {
+			id : userData.id,
+			name : userData.name,
+			message : DOM.$message.val(),
+			time : Math.round(Date.now() / 1000)
+		};
+		sendMessage(data, event);
+	});
+	DOM.$sendswitch.change(function(){
+		if ($(this).prop("checked")){
+			DOM.$sendbutton.hide();
+		}
+		else {
+			DOM.$sendbutton.show();
 		}
 	});
 
