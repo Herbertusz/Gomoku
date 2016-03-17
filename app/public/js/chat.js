@@ -4,10 +4,10 @@ $(document).ready(function(){
 
 	var socket = io.connect('http://' + DOMAIN + ':' + WSPORT + '/chat');
 	var DOM = {
-		$online : $('#online .list'),
-		$list : $('#list'),
+		$onlines : $('.online li'),
+		$list : $('.chat .list'),
 		$message : $('#message'),
-		$indicator : $('#indicator'),
+		$indicator : $('.chat .indicator'),
 		$sendbutton : $('#send'),
 		$sendswitch : $('#sendswitch')
 	};
@@ -17,7 +17,7 @@ $(document).ready(function(){
 		event : false,
 		message : ''
 	};
-	var onlineUserNames = [];
+	var onlineUserIds = [];
 
 	var escapeHtml = function(string){
 		var str;
@@ -76,20 +76,6 @@ $(document).ready(function(){
 			DOM.$indicator.html('');
 		}
 	};
-	var onlineChange = function(operation, name){
-		var i;
-		var online = DOM.$online.html().split(', ');
-		if (operation === 'add'){
-			online.push(name);
-		}
-		if (operation === 'remove'){
-			i = online.indexOf(name);
-			if (i > -1){
-				online.splice(i, 1);
-			}
-		}
-		DOM.$online.html(online.join(', '));
-	};
 	var sendMessage = function(data, event){
 		if (data.message.trim().length > 0){
 			socket.emit('chat message', data);
@@ -135,17 +121,25 @@ $(document).ready(function(){
 		}
 	});
 
-	socket.on('user connected', function(name){
-		appendSystemMessage('connect', name);
+	socket.on('user connected', function(data){
+		appendSystemMessage('connect', data.name);
 	});
-	socket.on('disconnect', function(name){
-		appendSystemMessage('disconnect', name === 'transport close' ? null : name);
+	socket.on('disconnect', function(data){
+		appendSystemMessage('disconnect', data.name === 'transport close' ? null : data.name);
 	});
 	socket.on('online change', function(online){
-		onlineUserNames = Object.keys(online).map(function(id){
-			return online[id];
+		onlineUserIds = Object.keys(online).map(function(socketId){
+			return online[socketId].id;
 		});
-		DOM.$online.html(onlineUserNames.join(', '));
+		DOM.$onlines.each(function(){
+			var $this = $(this);
+			if (onlineUserIds.indexOf($this.data("id")) > -1){
+				$this.find('span').addClass("on");
+			}
+			else{
+				$this.find('span').removeClass("on");
+			}
+		});
 	});
 	socket.on('chat message', function(data){
 		appendUserMessage(data);

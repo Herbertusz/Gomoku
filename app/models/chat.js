@@ -5,7 +5,26 @@ var DB = require(appRoot + '/app/models/dbconnect.js');
 
 var Model = {
 
-	read : function(callback){
+	getUsers : function(callback){
+		DB.query("\
+			SELECT\
+				*\
+			FROM\
+				`users`\
+			WHERE\
+				`active` = 1\
+			ORDER BY\
+				`username` ASC\
+		", function(error, rows, fields){
+			if (error) throw error;
+			rows.forEach(function(row, i){
+				rows[i].created = HD.DateTime.format('Y.m.d. H:i:s', Math.floor(Date.parse(row.created) / 1000));
+			});
+			callback.call(this, rows);
+		});
+	},
+
+	getMessages : function(callback){
 		DB.query("\
 			SELECT\
 				`chat`.*,\

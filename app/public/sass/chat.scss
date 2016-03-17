@@ -5,65 +5,84 @@
         Chat
 */
 
-#form {
-	position: relative;
-	width: 100%;
+section.chat {
 
-	textarea {
-		display: b;
-		border: 1px solid #000000;
-		padding: 10px;
-		height: 60px;
+	.form {
+		position: relative;
 		width: 100%;
-		resize: vertical;
-	}
 
-	#indicator {
-		margin: 5px 0;
-		height: 20px;
-		color: #999999;
-	}
-
-	.submitmode {
-		padding: 15px 0;
-
-		button {
-			float: right;
-			font-weight: bold;
+		textarea {
+			display: b;
+			border: 1px solid #000000;
+			padding: 10px;
+			height: 60px;
+			width: 100%;
+			resize: vertical;
 		}
 
+		.indicator {
+			margin: 5px 0;
+			height: 20px;
+			color: #999999;
+		}
+
+		.submitmode {
+			padding: 15px 0;
+
+			button {
+				float: right;
+				font-weight: bold;
+			}
+
+		}
+	}
+
+	.list {
+		list-style-type: none;
+		margin: 0;
+		padding: 0;
+		width: 100%;
+		height: 300px;
+		overflow-y: scroll;
+
+		li {
+			padding: 5px 10px;
+
+			&.highlighted {
+				color: red;
+				font-weight: bold;
+			}
+
+			.self {
+				color: #ff0000;
+			}
+
+			span {
+				float: right;
+				margin: 0 0 0 20px;
+				color: #aaaaaa;
+			}
+		}
 	}
 }
 
-#online {
+aside.online {
 	padding: 5px 10px;
 	background-color: #dddddd;
-}
-
-#list {
-	list-style-type: none;
-	margin: 0;
-	padding: 0;
-	width: 100%;
-	height: 300px;
-	overflow-y: scroll;
 
 	li {
 		padding: 5px 10px;
 
-		&.highlighted {
-			color: red;
-			font-weight: bold;
-		}
-
-		.self {
-			color: #ff0000;
-		}
-
 		span {
-			float: right;
-			margin: 0 0 0 20px;
-			color: #aaaaaa;
+			display: inline-block;
+			border-radius: 5px;
+			width: 10px;
+			height: 10px;
+			background-color: #888888;
+
+			&.on {
+				background-color: #15a300;
+			}
 		}
 	}
 }

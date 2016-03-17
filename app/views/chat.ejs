@@ -1,23 +1,29 @@
 <div style="margin: 20px 0;">
 	<% if (login){ %>
-		<div id="online">Online: <span class="list"></span></div>
-		<ul id="list">
-			<% messages.forEach(function(message){ %>
-				<li>
-					<span><%- message.created %></span>
-					<strong class="<% if (userId === message.user_id){ %>self<% } %>"><%= message.username %></strong>:
-					<%= message.message %>
-				</li>
-			<% }); %>
-		</ul>
-		<div id="form">
-			<div id="indicator"></div>
-			<textarea id="message" placeholder="Üzenet" autocomplete="off"></textarea>
-			<div class="submitmode">
-				<label><input id="sendswitch" type="checkbox" value="1" checked="checked" /> Küldés enter megnyomására</label>
-				<button id="send" class="hidden-weak">Küldés</button>
+		<section class="chat">
+			<ul class="list">
+
+			</ul>
+			<div class="form">
+				<div class="indicator"></div>
+				<textarea id="message" placeholder="Üzenet"></textarea>
+				<div class="submitmode">
+					<label><input id="sendswitch" type="checkbox" value="1" checked="checked" /> Küldés enter megnyomására</label>
+					<button id="send" class="hidden-weak">Küldés</button>
+				</div>
 			</div>
-		</div>
+		</section>
+		<aside class="online">
+			<ul>
+				<% users.forEach(function(user){ %>
+					<%# <% if (userId !== user.id){ %> %>
+						<li data-id="<%- user.id %>">
+							<span></span> <%= user.username %>
+						</li>
+					<%# <% } %> %>
+				<% }); %>
+			</ul>
+		</aside>
 	<% }else{ %>
 		Jelentkezzé be!
 	<% } %>
