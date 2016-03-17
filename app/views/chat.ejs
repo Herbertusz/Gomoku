@@ -1,29 +1,38 @@
 <div style="margin: 20px 0;">
 	<% if (login){ %>
-		<section class="chat">
-			<ul class="list">
-
-			</ul>
-			<div class="form">
-				<div class="indicator"></div>
-				<textarea id="message" placeholder="Üzenet"></textarea>
-				<div class="submitmode">
-					<label><input id="sendswitch" type="checkbox" value="1" checked="checked" /> Küldés enter megnyomására</label>
-					<button id="send" class="hidden-weak">Küldés</button>
-				</div>
-			</div>
-		</section>
 		<aside class="online">
 			<ul>
 				<% users.forEach(function(user){ %>
-					<%# <% if (userId !== user.id){ %> %>
+					<% if (userId !== user.id){ %>
 						<li data-id="<%- user.id %>">
-							<span></span> <%= user.username %>
+							<label>
+								<input class="user-select" type="checkbox" value="<%- user.id %>" />
+								<span class="status on"></span> <%= user.username %>
+							</label>
 						</li>
-					<%# <% } %> %>
+					<% } %>
 				<% }); %>
 			</ul>
+			<button class="start">Chat</button>
 		</aside>
+		<section class="chatcontainer">
+			<div class="chat cloneablee">
+				<div class="bar">
+					<span class="users"></span>
+					<span class="close"></span>
+				</div>
+				<ul class="list"></ul>
+				<div class="form">
+					<div class="indicator"></div>
+					<textarea class="message" placeholder="Üzenet"></textarea>
+					<div class="submitmode">
+						<label><input class="send-switch" type="checkbox" value="1" checked="checked" /> Küldés enter megnyomására</label>
+						<button class="send hidden-weak">Küldés</button>
+					</div>
+				</div>
+			</div>
+		</section>
+		<div class="clearfix"></div>
 	<% }else{ %>
 		Jelentkezzé be!
 	<% } %>

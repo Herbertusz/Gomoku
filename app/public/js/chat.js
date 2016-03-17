@@ -4,12 +4,15 @@ $(document).ready(function(){
 
 	var socket = io.connect('http://' + DOMAIN + ':' + WSPORT + '/chat');
 	var DOM = {
+		$start : $('.online .start'),
 		$onlines : $('.online li'),
+		$users : $('.chat .users'),
+		$close : $('.chat .close'),
 		$list : $('.chat .list'),
-		$message : $('#message'),
+		$message : $('.chat .message'),
 		$indicator : $('.chat .indicator'),
-		$sendbutton : $('#send'),
-		$sendswitch : $('#sendswitch')
+		$sendbutton : $('.chat .send'),
+		$sendswitch : $('.chat .send-switch')
 	};
 	var timer = {
 		timerID : null,
@@ -48,7 +51,7 @@ $(document).ready(function(){
 		DOM.$list.append('\
 			<li>\
 				<span>' + time + '</span>\
-				<strong class="' + (highlighted ? "self" : "") + '">' + escapeHtml(data.name) + '</strong>: \
+				<strong class="' + (highlighted ? "self" : "") + '">' + escapeHtml(data.name) + '</strong>:<br />\
 				' + escapeHtml(data.message) + '\
 			</li>\
 		');
@@ -59,7 +62,7 @@ $(document).ready(function(){
 			DOM.$list.append('<li class="highlighted">' + name + ' csatlakozott!</li>');
 		}
 		else if (type === 'disconnect'){
-			if (name === null){
+			if (typeof name === "undefined"){
 				DOM.$list.append('<li class="highlighted">Kapcsolat lezárult!</li>');
 			}
 			else {
@@ -83,6 +86,15 @@ $(document).ready(function(){
 			DOM.$message.val('');
 			event.preventDefault();
 		}
+	};
+	var setStatus = function($elem, status){
+		var n;
+		var $statusElem = $elem.find('.status');
+		var statuses = ["on", "busy", "idle", "off", "on-chat", "busy-chat", "idle-chat", "off-chat"];
+		for (n = 0; n < statuses.length; n++){
+			$statusElem.removeClass(statuses[n]);
+		}
+		$statusElem.addClass(status);
 	};
 
 	scrollToBottom();
@@ -125,7 +137,7 @@ $(document).ready(function(){
 		appendSystemMessage('connect', data.name);
 	});
 	socket.on('disconnect', function(data){
-		appendSystemMessage('disconnect', data.name === 'transport close' ? null : data.name);
+		appendSystemMessage('disconnect', data.name);
 	});
 	socket.on('online change', function(online){
 		onlineUserIds = Object.keys(online).map(function(socketId){
@@ -134,10 +146,10 @@ $(document).ready(function(){
 		DOM.$onlines.each(function(){
 			var $this = $(this);
 			if (onlineUserIds.indexOf($this.data("id")) > -1){
-				$this.find('span').addClass("on");
+				setStatus($this, "on");
 			}
 			else{
-				$this.find('span').removeClass("on");
+				setStatus($this, "off");
 			}
 		});
 	});

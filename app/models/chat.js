@@ -10,7 +10,7 @@ var Model = {
 			SELECT\
 				*\
 			FROM\
-				`users`\
+				`chat_users`\
 			WHERE\
 				`active` = 1\
 			ORDER BY\
@@ -27,13 +27,13 @@ var Model = {
 	getMessages : function(callback){
 		DB.query("\
 			SELECT\
-				`chat`.*,\
-				`users`.`username`\
+				`cm`.*,\
+				`cu`.`username`\
 			FROM\
-				`chat`\
-				LEFT JOIN `users` ON `chat`.`user_id` = `users`.`id`\
+				`chat_messages` `cm`\
+				LEFT JOIN `chat_users` `cu` ON `cm`.`user_id` = `cu`.`id`\
 			ORDER BY\
-				`chat`.`created` ASC\
+				`cm`.`created` ASC\
 		", function(error, rows, fields){
 			if (error) throw error;
 			rows.forEach(function(row, i){
@@ -45,7 +45,7 @@ var Model = {
 
 	log : function(data, callback){
 		var messageId;
-		DB.insert('chat', {
+		DB.insert('chat_messages', {
 			'user_id' : data.userId,
 			'message' : data.message,
 			'created' : HD.DateTime.format('Y-m-d H:i:s', data.time)

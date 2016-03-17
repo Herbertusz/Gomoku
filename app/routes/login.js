@@ -12,7 +12,7 @@ router.post('/', function(req, res, next){
 		password = req.body.password;
 
 		DB.query("\
-			SELECT * FROM `users` WHERE `username` = :username AND `password` = :password AND `active` = 1\
+			SELECT * FROM `chat_users` WHERE `username` = :username AND `password` = :password AND `active` = 1\
 		", {
 			username : username,
 			password : password
