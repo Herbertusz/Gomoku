@@ -47,6 +47,7 @@ var Model = {
 		var messageId;
 		DB.insert('chat_messages', {
 			'user_id' : data.userId,
+			'room' : data.room,
 			'message' : data.message,
 			'created' : HD.DateTime.format('Y-m-d H:i:s', data.time)
 		}, function(error, result){

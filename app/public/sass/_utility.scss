@@ -22,3 +22,30 @@ $font-arial: Arial, Helvetica, sans-serif;
 	-ms-transform: skewX($angle);
 	transform: skewX($angle);
 }
+
+@mixin cross($width, $height, $thick, $top, $borderRadius, $backgroundColor){
+	display: inline-block;
+	position: relative;
+	width: $width;
+	height: $height;
+
+	&%beforeafter {
+		content: '';
+		position: absolute;
+		left: 0;
+		top: $top;
+		border-radius: $borderRadius;
+		width: $width;
+		height: $thick;
+		background-color: $backgroundColor;
+	}
+
+	&::before {
+		@extend %beforeafter;
+		transform: rotate(45deg);
+	}
+	&::after {
+		@extend %beforeafter;
+		transform: rotate(-45deg);
+	}
+}
