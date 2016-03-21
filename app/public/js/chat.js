@@ -262,10 +262,21 @@ $(document).ready(function(){
 		appendSystemMessage($box, 'leave', getUserName(data.userId));
 		$box.find('[data-id="' + data.userId + '"]').remove();
 	});
-	socket.on('room joined', function(roomData, user){
-		var $box = $(DOM.box).filter('[data-room="' + roomData.name + '"]');
-		appendSystemMessage($box, 'join', getUserName(user.id));
-		// ...
+	socket.on('room joined', function(roomData){
+		var $box, $users;
+		if (roomData.joinedUserId === userData.id){
+			// Létre kell hozni a dobozt a csatornához
+			$box = cloneElement(DOM.$cloneBox, DOM.$container);
+			$users = $box.find(DOM.users);
+			generateUserList($users, roomData.userIds);
+			$box.attr("data-room", roomData.name);
+		}
+		else {
+			// Csatlakozott a csatornához
+			$box = $(DOM.box).filter('[data-room="' + roomData.name + '"]');
+			appendSystemMessage($box, 'join', getUserName(roomData.joinedUserId));
+			// ... a user-sávban bezöldíteni
+		}
 	});
 	socket.on('chat message', function(data){
 		var $box = $(DOM.box).filter('[data-room="' + data.roomName + '"]');
