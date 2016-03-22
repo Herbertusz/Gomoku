@@ -142,8 +142,15 @@ module.exports = function(server, session){
 		socket.on('room leave', function(data){
 			// kilépés csatornából emitter
 			roomUpdate('remove', data.roomName, data.userId);
-			socket.broadcast.emit('room leaved', data);
+			if (!data.silent){
+				socket.broadcast.emit('room leaved', data);
+			}
 			socket.leave(data.roomName);
+		});
+
+		socket.on('room forceleave', function(data){
+			// kidobás csatornából emitter
+			socket.broadcast.emit('room forceleaved', data);
 		});
 
 		socket.on('chat message', function(data){

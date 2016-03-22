@@ -13,6 +13,7 @@ $(document).ready(function(){
 		$cloneBox : $('.chat.cloneable'),
 		box : '.chat',
 		userItems : '.user-item',
+		userThrow : '.throw',
 		users : '.users',
 		close : '.close',
 		list : '.list',
@@ -55,7 +56,7 @@ $(document).ready(function(){
 	};
 	var appendUserMessage = function($box, data, highlighted){
 		highlighted = HD.Misc.funcParam(highlighted, false);
-		var time = HD.DateTime.format('Y.m.d. H:i:s', data.time);
+		var time = HD.DateTime.format('H:i:s', data.time);
 		var $list = $box.find(DOM.list);
 		$list.append('\
 			<li>\
@@ -66,13 +67,19 @@ $(document).ready(function(){
 		');
 		scrollToBottom($box);
 	};
-	var appendSystemMessage = function($box, type, name){
+	var appendSystemMessage = function($box, type, name, otherName){
 		var $list = $box.find(DOM.list);
 		if (type === 'join'){
 			$list.append('<li class="highlighted">' + name + ' csatlakozott!</li>');
 		}
 		else if (type === 'leave'){
 			$list.append('<li class="highlighted">' + name + ' kilépett!</li>');
+		}
+		else if (type === 'forceleaveyou'){
+			$list.append('<li class="highlighted">' + name + ' kidobott!</li>');
+		}
+		else if (type === 'forceleaveother'){
+			$list.append('<li class="highlighted">' + name + ' kidobta ' + otherName + ' felhasználót!</li>');
 		}
 		scrollToBottom($box);
 	};
@@ -129,8 +136,13 @@ $(document).ready(function(){
 		var $element = DOM.$online.find(DOM.allUsers).filter('[value="' + id + '"]');
 		return $element.data("name");
 	};
-	var generateUserList = function($to, userIds){
-		var $user;
+	var generateUserList = function($to, userIds, regenerate){
+		regenerate = HD.Misc.funcParam(regenerate, false);
+		var $user, $keep;
+		if (regenerate){
+			$keep = $to.find('.cloneable');
+			$to.html('').append($keep);
+		}
 		DOM.$onlineListItems.each(function(){
 			var $user;
 			var $this = $(this);
@@ -172,10 +184,31 @@ $(document).ready(function(){
 		var roomName = $box.data("room");
 		$box.remove();
 		socket.emit('room leave', {
-			triggerBy : userData.id,
 			userId : userData.id,
 			roomName : roomName
 		});
+	});
+
+	$(DOM.box).find(DOM.userThrow).click(function(){
+		var $box = $(this).parents(DOM.box);
+		var $user = $(this).parents(DOM.userItems);
+		var roomName = $box.data("room");
+		var userId = $user.data("id");
+		if (userId === userData.id){
+			$box.remove();
+			socket.emit('room leave', {
+				userId : userData.id,
+				roomName : roomName
+			});
+		}
+		else {
+			$user.remove();
+			socket.emit('room forceleave', {
+				triggerId : userData.id,
+				userId : userId,
+				roomName : roomName
+			});
+		}
 	});
 
 	$(DOM.box).find(DOM.message).keydown(function(event){
@@ -262,6 +295,23 @@ $(document).ready(function(){
 		appendSystemMessage($box, 'leave', getUserName(data.userId));
 		$box.find('[data-id="' + data.userId + '"]').remove();
 	});
+	socket.on('room forceleaved', function(data){
+		var $box = $(DOM.box).filter('[data-room="' + data.roomName + '"]');
+		var $users = $box.find(DOM.users);
+		if (data.userId === userData.id){
+			appendSystemMessage($box, 'forceleaveyou', getUserName(data.triggerId));
+			socket.emit('room leave', {
+				silent : true,
+				userId : userData.id,
+				roomName : data.roomName
+			});
+			$box.find(DOM.message).prop("disabled", true);
+		}
+		else {
+			appendSystemMessage($box, 'forceleaveother', getUserName(data.triggerId), getUserName(data.userId));
+		}
+		$box.find('[data-id="' + data.userId + '"]').remove();
+	});
 	socket.on('room joined', function(roomData){
 		var $box, $users;
 		if (roomData.joinedUserId === userData.id){
@@ -274,8 +324,9 @@ $(document).ready(function(){
 		else {
 			// Csatlakozott a csatornához
 			$box = $(DOM.box).filter('[data-room="' + roomData.name + '"]');
+			$users = $box.find(DOM.users);
 			appendSystemMessage($box, 'join', getUserName(roomData.joinedUserId));
-			// ... a user-sávban bezöldíteni
+			generateUserList($users, roomData.userIds, true);
 		}
 	});
 	socket.on('chat message', function(data){
