@@ -97,11 +97,14 @@ aside.online {
 					@include cross(13px, 13px, 2px, 6px, 0px, #000000);
 					cursor: pointer;
 
-					&:hover::before {
-						background-color: #ff0000;
-					}
+					&:hover::before,
 					&:hover::after {
 						background-color: #ff0000;
+					}
+
+					&.disabled::before,
+					&.disabled::after {
+						background-color: #aaaaaa;
 					}
 				}
 			}

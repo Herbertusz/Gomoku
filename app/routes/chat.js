@@ -20,4 +20,14 @@ router.get('/', function(req, res, next){
 
 });
 
+router.post('/getroommessages', function(req, res, next){
+
+	Model.getRoomMessages(req.body.roomName, function(messages){
+		res.send({
+			messages : messages
+		});
+	});
+
+});
+
 module.exports = router;

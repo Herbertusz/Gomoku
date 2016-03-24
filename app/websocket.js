@@ -90,8 +90,9 @@ module.exports = function(server, session){
 
 	var io = require('socket.io')(server);
 	io.of('/chat').use(ioSession(session));
+
+	// Belépés a chat-be
 	io.of('/chat').on('connection', function(socket){
-		// csatlakozás
 		var session = socket.handshake.session;
 		var userData = null;
 		if (session.login && session.login.loginned){
@@ -118,8 +119,8 @@ module.exports = function(server, session){
 			});
 		}
 
+		// Csatlakozás bontása
 		socket.on('disconnect', function(){
-			// csatlakozás bontása emitter
 			var userData = connectedUsers[socket.id];
 			delete connectedUsers[socket.id];
 			roomUpdate('remove', null, userData.id);
@@ -127,20 +128,20 @@ module.exports = function(server, session){
 			io.of('/chat').emit('disconnect', userData);
 		});
 
+		// Csatorna létrehozása
 		socket.on('room created', function(roomData){
-			// csatorna létrehozása emitter
 			rooms.push(roomData);
 			socket.join(roomData.name);
 			socket.broadcast.emit('room created', roomData);
 		});
 
+		// Belépés csatornába
 		socket.on('room join', function(roomData){
-			// belépés csatornába emitter
 			socket.join(roomData.name);
 		});
 
+		// Kilépés csatornából
 		socket.on('room leave', function(data){
-			// kilépés csatornából emitter
 			roomUpdate('remove', data.roomName, data.userId);
 			if (!data.silent){
 				socket.broadcast.emit('room leaved', data);
@@ -148,13 +149,13 @@ module.exports = function(server, session){
 			socket.leave(data.roomName);
 		});
 
+		// Kidobás csatornából emitter
 		socket.on('room forceleave', function(data){
-			// kidobás csatornából emitter
 			socket.broadcast.emit('room forceleaved', data);
 		});
 
+		// Üzenetküldés emitter
 		socket.on('chat message', function(data){
-			// üzenetküldés emitter
 			socket.broadcast.to(data.roomName).emit('chat message', data);
 			Model.log({
 				userId : userData.id,
@@ -164,8 +165,8 @@ module.exports = function(server, session){
 			}, function(){});
 		});
 
+		// Üzenetírás emitter
 		socket.on('chat writing', function(data){
-			// üzenetírás emitter
 			socket.broadcast.to(data.roomName).emit('chat writing', data);
 		});
 	});

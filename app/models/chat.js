@@ -18,7 +18,7 @@ var Model = {
 		", function(error, rows, fields){
 			if (error) throw error;
 			rows.forEach(function(row, i){
-				rows[i].created = HD.DateTime.format('Y.m.d. H:i:s', Math.floor(Date.parse(row.created) / 1000));
+				rows[i].created = HD.DateTime.format('Y-m-d H:i:s', Math.floor(Date.parse(row.created) / 1000));
 			});
 			callback.call(this, rows);
 		});
@@ -37,7 +37,30 @@ var Model = {
 		", function(error, rows, fields){
 			if (error) throw error;
 			rows.forEach(function(row, i){
-				rows[i].created = HD.DateTime.format('Y.m.d. H:i:s', Math.floor(Date.parse(row.created) / 1000));
+				rows[i].created = HD.DateTime.format('Y-m-d H:i:s', Math.floor(Date.parse(row.created) / 1000));
+			});
+			callback.call(this, rows);
+		});
+	},
+
+	getRoomMessages : function(roomName, callback){
+		DB.query("\
+			SELECT\
+				`cm`.*,\
+				`cu`.`username`\
+			FROM\
+				`chat_messages` `cm`\
+				LEFT JOIN `chat_users` `cu` ON `cm`.`user_id` = `cu`.`id`\
+			WHERE\
+				`cm`.`room` = :roomName\
+			ORDER BY\
+				`cm`.`created` ASC\
+		", {
+			roomName : roomName
+		}, function(error, rows, fields){
+			if (error) throw error;
+			rows.forEach(function(row, i){
+				rows[i].created = HD.DateTime.format('Y-m-d H:i:s', Math.floor(Date.parse(row.created) / 1000));
 			});
 			callback.call(this, rows);
 		});
