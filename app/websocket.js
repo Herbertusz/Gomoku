@@ -11,8 +11,10 @@ module.exports = function(server, session){
 	 * @type Object
 	 * @description szerkezet: {
 	 *		<socket.id> : {
-	 *			id : Number,	// user azonosító
-	 *			name : String	// user login név
+	 *			id : Number,		// user azonosító
+	 *			name : String,		// user login név
+	 *			status : String,	// user státusz ("on"|"busy"|"off")
+	 *			isIdle : Boolean	// user státusz: "idle"
 	 *		},
 	 *		...
 	 * }
@@ -99,7 +101,9 @@ module.exports = function(server, session){
 			// belépett user
 			userData = {
 				id : session.login.userId,
-				name : session.login.userName
+				name : session.login.userName,
+				status : "on",
+				isIdle : false
 			};
 		}
 		else{
@@ -109,12 +113,12 @@ module.exports = function(server, session){
 		if (userData){
 			// csatlakozás emitter
 			connectedUsers[socket.id] = userData;
-			socket.broadcast.emit('user connected', userData);
-			io.of('/chat').emit('online change', connectedUsers);
+			socket.broadcast.emit('userConnected', userData);
+			io.of('/chat').emit('statusChanged', connectedUsers);
 			rooms.forEach(function(roomData){
 				if (roomData.userIds.indexOf(userData.id) > -1){
 					socket.join(roomData.name);
-					io.of('/chat').to(roomData.name).emit('room joined', Object.assign(roomData, {joinedUserId : userData.id}));
+					io.of('/chat').to(roomData.name).emit('roomJoined', Object.assign(roomData, {joinedUserId : userData.id}));
 				}
 			});
 		}
@@ -122,41 +126,54 @@ module.exports = function(server, session){
 		// Csatlakozás bontása
 		socket.on('disconnect', function(){
 			var userData = connectedUsers[socket.id];
-			delete connectedUsers[socket.id];
-			roomUpdate('remove', null, userData.id);
-			io.of('/chat').emit('online change', connectedUsers);
-			io.of('/chat').emit('disconnect', userData);
+			if (userData){
+				delete connectedUsers[socket.id];
+				roomUpdate('remove', null, userData.id);
+				io.of('/chat').emit('statusChanged', connectedUsers);
+				io.of('/chat').emit('disconnect', userData);
+			}
+		});
+
+		// User állapotváltozása
+		socket.on('statusChanged', function(updatedConnectedUsers){
+			connectedUsers = updatedConnectedUsers;
+			socket.broadcast.emit('statusChanged', updatedConnectedUsers);
 		});
 
 		// Csatorna létrehozása
-		socket.on('room created', function(roomData){
+		socket.on('roomCreated', function(roomData){
 			rooms.push(roomData);
 			socket.join(roomData.name);
-			socket.broadcast.emit('room created', roomData);
+			socket.broadcast.emit('roomCreated', roomData);
 		});
 
 		// Belépés csatornába
-		socket.on('room join', function(roomData){
+		socket.on('roomJoin', function(roomData){
 			socket.join(roomData.name);
 		});
 
 		// Kilépés csatornából
-		socket.on('room leave', function(data){
+		socket.on('roomLeave', function(data){
 			roomUpdate('remove', data.roomName, data.userId);
 			if (!data.silent){
-				socket.broadcast.emit('room leaved', data);
+				socket.broadcast.emit('roomLeaved', data);
 			}
 			socket.leave(data.roomName);
 		});
 
+		// Hozzáadás csatornához emitter
+		socket.on('roomForceJoin', function(data){
+			socket.broadcast.emit('roomForceJoined', data);
+		});
+
 		// Kidobás csatornából emitter
-		socket.on('room forceleave', function(data){
-			socket.broadcast.emit('room forceleaved', data);
+		socket.on('roomForceLeave', function(data){
+			socket.broadcast.emit('roomForceLeaved', data);
 		});
 
 		// Üzenetküldés emitter
-		socket.on('chat message', function(data){
-			socket.broadcast.to(data.roomName).emit('chat message', data);
+		socket.on('sendMessage', function(data){
+			socket.broadcast.to(data.roomName).emit('sendMessage', data);
 			Model.log({
 				userId : userData.id,
 				room : data.roomName,
@@ -166,8 +183,8 @@ module.exports = function(server, session){
 		});
 
 		// Üzenetírás emitter
-		socket.on('chat writing', function(data){
-			socket.broadcast.to(data.roomName).emit('chat writing', data);
+		socket.on('typeMessage', function(data){
+			socket.broadcast.to(data.roomName).emit('typeMessage', data);
 		});
 	});
 

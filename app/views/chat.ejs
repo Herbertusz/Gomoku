@@ -1,14 +1,26 @@
 <div style="margin: 20px 0;">
 	<% if (login){ %>
-		<aside class="online">
+		<aside class="online" data-connected-users="">
 			<ul>
+				<li data-id="<%- userId %>" data-name="<%= userName %>" class="self">
+					<label>
+						<span class="status on"></span> <%= userName %>
+						<select class="status-change">
+							<option value="on" selected>Elérhető</option>
+							<option value="busy">Elfoglalt</option>
+							<option value="inv">Lopakodó</option>
+						</select>
+					</label>
+				</li>
 				<% users.forEach(function(user){ %>
-					<li data-id="<%- user.id %>" class="<% if (userId === user.id){ %>hidden-weak<% } %>">
-						<label>
-							<input class="user-select" type="checkbox" value="<%- user.id %>" data-name="<%= user.username %>" />
-							<span class="status on"></span> <%= user.username %>
-						</label>
-					</li>
+					<% if (userId !== user.id){ %>
+						<li data-id="<%- user.id %>" data-name="<%= user.username %>" class="<% if (userId === user.id){ %>hidden-weak<% } %>">
+							<label>
+								<input class="user-select" type="checkbox" value="<%- user.id %>" />
+								<span class="status off"></span> <%= user.username %>
+							</label>
+						</li>
+					<% } %>
 				<% }); %>
 			</ul>
 			<button class="start">Chat</button>
@@ -24,6 +36,7 @@
 						</span>
 					</span>
 					<span class="close" title="Kilépés"></span>
+					<button class="add-user hidden-weak">Hozzáadás</button>
 				</div>
 				<ul class="list"></ul>
 				<div class="form">
