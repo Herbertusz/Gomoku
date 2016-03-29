@@ -44,6 +44,12 @@ CHAT.Method = {
 		else if (type === 'leave'){
 			$list.append('<li class="highlighted">' + name + ' kilépett!</li>');
 		}
+		else if (type === 'forcejoinyou'){
+			$list.append('<li class="highlighted">' + name + ' hozzáadott ehhez a csatornához!</li>');
+		}
+		else if (type === 'forcejoinother'){
+			$list.append('<li class="highlighted">' + name + ' hozzáadta ' + otherName + ' felhasználót ehhez a csatornához!</li>');
+		}
 		else if (type === 'forceleaveyou'){
 			$list.append('<li class="highlighted">' + name + ' kidobott!</li>');
 		}

@@ -242,26 +242,26 @@ CHAT.Events = {
 		 * @param {type} data
 		 */
 		roomForceJoined : function(data){
-			/*
-			var $box = $(CHAT.DOM.box).filter('[data-room="' + data.roomName + '"]');
-			var $users = $box.find(CHAT.DOM.users);
+			var $box, $users;
 			if (data.userId === CHAT.USER.id){
-				CHAT.Method.appendSystemMessage($box, 'forceleaveyou', CHAT.Method.getUserName(data.triggerId));
-				CHAT.socket.emit('roomLeave', {
-					silent : true,
-					userId : CHAT.USER.id,
-					roomName : data.roomName
-				});
-				$box.find(CHAT.DOM.message).prop("disabled", true);
-				$box.find(CHAT.DOM.userThrow).addClass("disabled");
+				// Létre kell hozni a dobozt a csatornához
+				$box = CHAT.Util.cloneElement($(CHAT.DOM.cloneBox), $(CHAT.DOM.container));
+				$users = $box.find(CHAT.DOM.users);
+				$box.attr("data-room", data.roomName);
+				CHAT.Method.generateUserList($users, data.roomData.userIds);
+				CHAT.Method.updateStatuses($(CHAT.DOM.online).data("connectedUsers"));
+				CHAT.Method.fillBox($box, data.roomName);
+				CHAT.Method.appendSystemMessage($box, 'forcejoinyou', CHAT.Method.getUserName(data.triggerId));
 			}
 			else {
+				// Csatlakozott a csatornához
+				$box = $(CHAT.DOM.box).filter('[data-room="' + data.roomName + '"]');
+				$users = $box.find(CHAT.DOM.users);
 				CHAT.Method.appendSystemMessage(
-					$box, 'forceleaveother', CHAT.Method.getUserName(data.triggerId), CHAT.Method.getUserName(data.userId)
+					$box, 'forcejoinother', CHAT.Method.getUserName(data.triggerId), CHAT.Method.getUserName(data.userId)
 				);
+				CHAT.Method.generateUserList($users, data.roomData.userIds, true);
 			}
-			$box.find('[data-id="' + data.userId + '"]').remove();
-			*/
 		},
 
 		/**
