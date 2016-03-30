@@ -1,5 +1,5 @@
 /*
-SQLyog Ultimate v9.63 
+SQLyog Ultimate v9.63
 MySQL - 5.6.20 : Database - gomoku
 *********************************************************************
 */
@@ -111,10 +111,10 @@ CREATE TABLE `users` (
 
 /*Data for the table `users` */
 
-insert  into `users`(`id`,`username`,`password`,`email`,`created`,`active`) values (1,'Hörb','x','norb@webprog.biz','2015-12-17 19:19:37',1);
-insert  into `users`(`id`,`username`,`password`,`email`,`created`,`active`) values (2,'Pistike','x',NULL,'2015-12-17 19:19:51',0);
-insert  into `users`(`id`,`username`,`password`,`email`,`created`,`active`) values (3,'Dan','x',NULL,'2016-03-05 19:30:23',1);
-insert  into `users`(`id`,`username`,`password`,`email`,`created`,`active`) values (4,'Kristóf','x',NULL,'2016-03-09 21:12:22',1);
+insert  into `chat_users`(`id`,`username`,`password`,`email`,`created`,`active`) values (1,'Hörb','x','norb@webprog.biz','2015-12-17 19:19:37',1);
+insert  into `chat_users`(`id`,`username`,`password`,`email`,`created`,`active`) values (2,'Pistike','x',NULL,'2015-12-17 19:19:51',0);
+insert  into `chat_users`(`id`,`username`,`password`,`email`,`created`,`active`) values (3,'Dan','x',NULL,'2016-03-05 19:30:23',1);
+insert  into `chat_users`(`id`,`username`,`password`,`email`,`created`,`active`) values (4,'Kristóf','x',NULL,'2016-03-09 21:12:22',1);
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
 /*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;

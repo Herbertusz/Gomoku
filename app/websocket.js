@@ -149,6 +149,9 @@ module.exports = function(server, session){
 
 		// Belépés csatornába
 		socket.on('roomJoin', function(roomData){
+			if (roomData.silent){
+				roomUpdate('remove', roomData.roomName, roomData.userId);
+			}
 			socket.join(roomData.name);
 		});
 

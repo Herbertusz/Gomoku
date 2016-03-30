@@ -61,7 +61,6 @@ CHAT.Events = {
 			var $user = $add.parents(CHAT.DOM.userItems);
 			var roomName = $box.data("room");
 			if (!$add.hasClass("disabled")){
-				$user.remove();
 				CHAT.socket.emit('roomForceJoin', {
 					triggerId : CHAT.USER.id,
 					userId : userId,
@@ -252,6 +251,12 @@ CHAT.Events = {
 				CHAT.Method.updateStatuses($(CHAT.DOM.online).data("connectedUsers"));
 				CHAT.Method.fillBox($box, data.roomName);
 				CHAT.Method.appendSystemMessage($box, 'forcejoinyou', CHAT.Method.getUserName(data.triggerId));
+				// TODO: itt roomData adatformátumot kéne átadni
+				CHAT.socket.emit('roomJoin', {
+					silent : true,
+					userId : CHAT.USER.id,
+					roomName : data.roomName
+				});
 			}
 			else {
 				// Csatlakozott a csatornához
