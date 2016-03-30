@@ -163,12 +163,12 @@ module.exports = function(server, session){
 
 		// Hozzáadás csatornához emitter
 		socket.on('roomForceJoin', function(data){
-			socket.broadcast.emit('roomForceJoined', data);
+			socket.broadcast.emit('roomForceJoined', Object.assign(data, {roomData : rooms[data.roomName]}));
 		});
 
 		// Kidobás csatornából emitter
 		socket.on('roomForceLeave', function(data){
-			socket.broadcast.emit('roomForceLeaved', data);
+			socket.broadcast.emit('roomForceLeaved', Object.assign(data, {roomData : rooms[data.roomName]}));
 		});
 
 		// Üzenetküldés emitter
