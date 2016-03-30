@@ -58,7 +58,6 @@ CHAT.Events = {
 		 */
 		forceJoinRoom : function($add, userId){
 			var $box = $add.parents(CHAT.DOM.box);
-			var $user = $add.parents(CHAT.DOM.userItems);
 			var roomName = $box.data("room");
 			if (!$add.hasClass("disabled")){
 				CHAT.socket.emit('roomForceJoin', {
@@ -198,7 +197,7 @@ CHAT.Events = {
 				$box.attr("data-room", roomData.name);
 				CHAT.Method.generateUserList($users, roomData.userIds);
 				CHAT.Method.updateStatuses($(CHAT.DOM.online).data("connectedUsers"));
-				CHAT.socket.emit('roomJoin', roomData);
+				CHAT.socket.emit('roomJoin', {roomName : roomData.name});
 			}
 		},
 
@@ -228,75 +227,96 @@ CHAT.Events = {
 
 		/**
 		 * Csatorna elhagyása
-		 * @param {type} data
+		 * @param {Object} extData
+		 * @description szerkezet: {
+		 * 		userId : Number,
+		 * 		roomData : Object
+		 * }
 		 */
-		roomLeaved : function(data){
-			var $box = $(CHAT.DOM.box).filter('[data-room="' + data.roomName + '"]');
-			CHAT.Method.appendSystemMessage($box, 'leave', CHAT.Method.getUserName(data.userId));
-			$box.find('[data-id="' + data.userId + '"]').remove();
+		roomLeaved : function(extData){
+			var $box;
+			if (extData.roomData) {
+				$box = $(CHAT.DOM.box).filter('[data-room="' + extData.roomData.name + '"]');
+				CHAT.Method.appendSystemMessage($box, 'leave', CHAT.Method.getUserName(extData.userId));
+				$box.find('[data-id="' + extData.userId + '"]').remove();
+			}
 		},
 
 		/**
 		 * Hozzáadás csatornához
-		 * @param {type} data
+		 * @param {Object} extData
+		 * @description szerkezet: {
+		 *  	triggerId : Number,
+		 * 		userId : Number,
+		 * 		roomData : Object
+		 * }
 		 */
-		roomForceJoined : function(data){
+		roomForceJoined : function(extData){
 			var $box, $users;
-			if (data.userId === CHAT.USER.id){
+			if (extData.userId === CHAT.USER.id){
 				// Létre kell hozni a dobozt a csatornához
 				$box = CHAT.Util.cloneElement($(CHAT.DOM.cloneBox), $(CHAT.DOM.container));
 				$users = $box.find(CHAT.DOM.users);
-				$box.attr("data-room", data.roomName);
-				CHAT.Method.generateUserList($users, data.roomData.userIds);
+				$box.attr("data-room", extData.roomData.name);
+				CHAT.Method.generateUserList($users, extData.roomData.userIds);
 				CHAT.Method.updateStatuses($(CHAT.DOM.online).data("connectedUsers"));
-				CHAT.Method.fillBox($box, data.roomName);
-				CHAT.Method.appendSystemMessage($box, 'forcejoinyou', CHAT.Method.getUserName(data.triggerId));
-				// TODO: itt roomData adatformátumot kéne átadni
+				CHAT.Method.fillBox($box, extData.roomData.name);
+				CHAT.Method.appendSystemMessage($box, 'forcejoinyou', CHAT.Method.getUserName(extData.triggerId));
 				CHAT.socket.emit('roomJoin', {
-					silent : true,
 					userId : CHAT.USER.id,
-					roomName : data.roomName
+					roomName : extData.roomData.name
 				});
 			}
 			else {
 				// Csatlakozott a csatornához
-				$box = $(CHAT.DOM.box).filter('[data-room="' + data.roomName + '"]');
+				$box = $(CHAT.DOM.box).filter('[data-room="' + extData.roomData.name + '"]');
 				$users = $box.find(CHAT.DOM.users);
 				CHAT.Method.appendSystemMessage(
-					$box, 'forcejoinother', CHAT.Method.getUserName(data.triggerId), CHAT.Method.getUserName(data.userId)
+					$box, 'forcejoinother', CHAT.Method.getUserName(extData.triggerId), CHAT.Method.getUserName(extData.userId)
 				);
-				CHAT.Method.generateUserList($users, data.roomData.userIds, true);
+				CHAT.Method.generateUserList($users, extData.roomData.userIds, true);
 			}
 		},
 
 		/**
 		 * Kidobás csatornából
-		 * @param {type} data
+		 * @param {Object} extData
+		 * @description szerkezet: {
+		 *  	triggerId : Number,
+		 * 		userId : Number,
+		 * 		roomData : Object
+		 * }
 		 */
-		roomForceLeaved : function(data){
-			var $box = $(CHAT.DOM.box).filter('[data-room="' + data.roomName + '"]');
-			var $users = $box.find(CHAT.DOM.users);
-			if (data.userId === CHAT.USER.id){
-				CHAT.Method.appendSystemMessage($box, 'forceleaveyou', CHAT.Method.getUserName(data.triggerId));
+		roomForceLeaved : function(extData){
+			var $box = $(CHAT.DOM.box).filter('[data-room="' + extData.roomData.name + '"]');
+			if (extData.userId === CHAT.USER.id){
+				CHAT.Method.appendSystemMessage($box, 'forceleaveyou', CHAT.Method.getUserName(extData.triggerId));
 				CHAT.socket.emit('roomLeave', {
 					silent : true,
 					userId : CHAT.USER.id,
-					roomName : data.roomName
+					roomName : extData.roomData.name
 				});
 				$box.find(CHAT.DOM.message).prop("disabled", true);
 				$box.find(CHAT.DOM.userThrow).addClass("disabled");
 			}
 			else {
 				CHAT.Method.appendSystemMessage(
-					$box, 'forceleaveother', CHAT.Method.getUserName(data.triggerId), CHAT.Method.getUserName(data.userId)
+					$box, 'forceleaveother', CHAT.Method.getUserName(extData.triggerId), CHAT.Method.getUserName(extData.userId)
 				);
 			}
-			$box.find('[data-id="' + data.userId + '"]').remove();
+			$box.find('[data-id="' + extData.userId + '"]').remove();
 		},
 
 		/**
 		 * Üzenetküldés
-		 * @param {type} data
+		 * @param {Object} data
+		 * @description szerkezet: {
+		 *  	id : Number,
+		 * 		name : Number,
+		 * 		message : String,
+		 * 		time : Number,
+		 * 		roomName : String
+		 * }
 		 */
 		sendMessage : function(data){
 			var $box = $(CHAT.DOM.box).filter('[data-room="' + data.roomName + '"]');
@@ -309,7 +329,14 @@ CHAT.Events = {
 
 		/**
 		 * Üzenetírás
-		 * @param {type} data
+		 * @param {Object} data
+		 * @description szerkezet: {
+		 *  	id : Number,
+		 * 		name : Number,
+		 * 		message : String,
+		 * 		time : Number,
+		 * 		roomName : String
+		 * }
 		 */
 		typeMessage : function(data){
 			var $box = $(CHAT.DOM.box).filter('[data-room="' + data.roomName + '"]');
