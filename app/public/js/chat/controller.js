@@ -67,7 +67,7 @@ $(document).ready(function(){
 	});
 
 	// Üzenetküldés indítása gombnyomásra
-	$(CHAT.DOM.box).find(CHAT.DOM.sendButton).click(function(event){
+	$(CHAT.DOM.box).find(CHAT.DOM.sendButton).click(function(){
 		var $box = $(this).parents('.chat');
 		CHAT.Events.Client.sendMessage($box);
 	});

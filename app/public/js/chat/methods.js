@@ -34,7 +34,7 @@ CHAT.Method = {
 	 * @param {jQuery} $box
 	 * @param {String} type
 	 * @param {String} name
-	 * @param {String} otherName
+	 * @param {String} [otherName]
 	 */
 	appendSystemMessage : function($box, type, name, otherName){
 		var $list = $box.find(CHAT.DOM.list);

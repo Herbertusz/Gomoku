@@ -36,6 +36,17 @@ module.exports = function(server, session){
 	var rooms = [];
 
 	/**
+	 * Csatorna adatainak lekérése név alapján
+	 * @param {String} name
+	 * @returns {Object}
+	 */
+	var getRoom = function(name){
+		return rooms.find(function(room){
+			return room.name === name;
+		});
+	};
+
+	/**
 	 * Csatornák törlése, melyekben nincs user, vagy csak offline userek vannak
 	 * @returns {Array<String>} törölt csatornák azonosítói
 	 */
@@ -61,7 +72,7 @@ module.exports = function(server, session){
 	 * @param {Number} userId user azonosító
 	 */
 	var roomUpdate = function(operation, roomName, userId){
-		var roomIndex = -1;
+		var roomIndex;
 		var userIdIndex = -1;
 		if (!roomName){
 			// összes csatorna
@@ -148,30 +159,40 @@ module.exports = function(server, session){
 		});
 
 		// Belépés csatornába
-		socket.on('roomJoin', function(roomData){
-			if (roomData.silent){
-				roomUpdate('remove', roomData.roomName, roomData.userId);
-			}
-			socket.join(roomData.name);
+		socket.on('roomJoin', function(data){
+			socket.join(data.roomName);
 		});
 
 		// Kilépés csatornából
 		socket.on('roomLeave', function(data){
-			roomUpdate('remove', data.roomName, data.userId);
 			if (!data.silent){
-				socket.broadcast.emit('roomLeaved', data);
+				let roomData = getRoom(data.roomName);
+				socket.broadcast.emit('roomLeaved', {
+					userId : data.userId,
+					roomData : roomData
+				});
 			}
+			roomUpdate('remove', data.roomName, data.userId);
 			socket.leave(data.roomName);
 		});
 
 		// Hozzáadás csatornához emitter
 		socket.on('roomForceJoin', function(data){
-			socket.broadcast.emit('roomForceJoined', Object.assign(data, {roomData : rooms[data.roomName]}));
+			roomUpdate('add', data.roomName, data.userId);
+			socket.broadcast.emit('roomForceJoined', {
+				triggerId : data.triggerId,
+				userId : data.userId,
+				roomData : getRoom(data.roomName)
+			});
 		});
 
 		// Kidobás csatornából emitter
 		socket.on('roomForceLeave', function(data){
-			socket.broadcast.emit('roomForceLeaved', Object.assign(data, {roomData : rooms[data.roomName]}));
+			socket.broadcast.emit('roomForceLeaved', {
+				triggerId : data.triggerId,
+				userId : data.userId,
+				roomData : getRoom(data.roomName)
+			});
 		});
 
 		// Üzenetküldés emitter
