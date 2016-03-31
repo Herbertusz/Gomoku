@@ -7,6 +7,7 @@ $(document).ready(function(){
 	// Csatorna létrehozása
 	$(CHAT.DOM.start).click(function(){
 		CHAT.Events.Client.createRoom();
+		$(CHAT.DOM.userSelect).prop("checked", false).trigger("change");
 	});
 
 	// Kilépés csatornából
@@ -28,6 +29,7 @@ $(document).ready(function(){
 		$(CHAT.DOM.selectedUsers).each(function(){
 			CHAT.Events.Client.forceJoinRoom($add, Number($(this).val()));
 		});
+		$(CHAT.DOM.userSelect).prop("checked", false).trigger("change");
 	});
 
 	// User kidobása csatornából
