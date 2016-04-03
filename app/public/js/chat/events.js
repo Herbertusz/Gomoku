@@ -110,7 +110,7 @@ CHAT.Events = {
 			var $message = $box.find(CHAT.DOM.message);
 			var data = {
 				id : CHAT.USER.id,
-				name : CHAT.USER.name,
+				name : CHAT.USER.name, // TODO
 				message : $message.val(),
 				time : Math.round(Date.now() / 1000),
 				roomName : $box.data("room")
@@ -123,6 +123,67 @@ CHAT.Events = {
 		},
 
 		/**
+		 * Fájlküldés
+		 * @param {jQuery} $box
+		 * @param {Object} files
+		 */
+		sendFile : function($box, files){
+			var file = files[0];
+			var types = {
+				image : {tag : "img", attr : "src"},
+				file : {tag : "a", attr : "href"}
+			};
+			var extensions = {
+				image : /^image\/.*$/,
+				text  : /^text\/plain$/,
+				code  : /^(text\/css|.*javascript|.*ecmascript)$/,
+				pdf   : /^application\/pdf$/,
+				doc   : /^.*(msword|ms-word|wordprocessingml).*/,
+				xls   : /^.*(ms-excel|spreadsheetml).*$/,
+				ppt   : /^.*(ms-powerpoint|presentationml).*$/,
+				zip   : /^.*(zip|compressed).*$/,
+				audio : /^audio\/.*$/,
+				video : /^video\/.*$/,
+				exec  : /^application\/octet-stream$/,
+				file  : /^.*$/
+			};
+
+			var data = {
+				id : CHAT.USER.id,
+				name : CHAT.USER.name, // TODO
+				fileData : {
+					name : file.name,
+					size : file.size,
+					type : file.type
+				},
+				file : null,
+				type : "file",
+				time : Math.round(Date.now() / 1000),
+				roomName : $box.data("room")
+			};
+			if (file.size < 2 * 1024 * 1024){
+				let index, mainType, element, reader;
+				for (index in extensions){
+					if (extensions[index].test(file.type)){
+						data.type = index;
+						break;
+					}
+				}
+				mainType = (data.type === "image") ? "image" : "file";
+				element = document.createElement(types[mainType].tag);
+				reader = new FileReader();
+				//element.file = data.fileData;
+				reader.onload = function(){
+					data.file = reader.result;
+					element[types[mainType].attr] = data.file;
+					CHAT.Method.appendFile($box, data);
+					CHAT.socket.emit('sendFile', data);
+				};
+				reader.readAsDataURL(file);
+			}
+		},
+
+		/**
 		 * Gépelés
 		 * @param {jQuery} $box
 		 */
@@ -130,7 +191,7 @@ CHAT.Events = {
 			var $message = $box.find(CHAT.DOM.message);
 			var data = {
 				id : CHAT.USER.id,
-				name : CHAT.USER.name,
+				name : CHAT.USER.name, // TODO
 				message : $message.val(),
 				time : Math.round(Date.now() / 1000),
 				roomName : $box.data("room")
@@ -318,7 +379,7 @@ CHAT.Events = {
 		 * @param {Object} data
 		 * @description szerkezet: {
 		 *  	id : Number,
-		 * 		name : Number,
+		 * 		name : String,
 		 * 		message : String,
 		 * 		time : Number,
 		 * 		roomName : String
@@ -328,6 +389,32 @@ CHAT.Events = {
 			var $box = $(CHAT.DOM.box).filter('[data-room="' + data.roomName + '"]');
 			if ($box.length === 0) return;
 			CHAT.Method.appendUserMessage($box, data);
+			CHAT.Method.stopWrite($box, data.name, ''); // TODO
+			window.clearInterval(CHAT.timer.writing.timerID);
+			CHAT.timer.writing.timerID = null;
+		},
+
+		/**
+		 * Fájlküldés
+		 * @param {Object} data
+		 * @description szerkezet: {
+		 *  	id : Number,
+		 * 		name : String,
+		 * 		fileData : {
+		 * 			name : String,
+		 *  		size : Number,
+		 *  		type : String
+		 * 		},
+		 * 		file : String,
+		 * 		type : String,
+		 * 		time : Number,
+		 * 		roomName : String
+		 * }
+		 */
+		sendFile : function(data){
+			var $box = $(CHAT.DOM.box).filter('[data-room="' + data.roomName + '"]');
+			if ($box.length === 0) return;
+			CHAT.Method.appendFile($box, data);
 			CHAT.Method.stopWrite($box, data.name, '');
 			window.clearInterval(CHAT.timer.writing.timerID);
 			CHAT.timer.writing.timerID = null;
@@ -338,7 +425,7 @@ CHAT.Events = {
 		 * @param {Object} data
 		 * @description szerkezet: {
 		 *  	id : Number,
-		 * 		name : Number,
+		 * 		name : String,
 		 * 		message : String,
 		 * 		time : Number,
 		 * 		roomName : String
@@ -351,10 +438,10 @@ CHAT.Events = {
 			writing.event = true;
 			writing.message = data.message;
 			if (!writing.timerID){
-				$box.find(CHAT.DOM.indicator).html(data.name + ' éppen ír...');
+				$box.find(CHAT.DOM.indicator).html(`${data.name} éppen ír...`); // TODO
 				writing.timerID = window.setInterval(function(){
 					if (!writing.event){
-						CHAT.Method.stopWrite($box, data.name, writing.message);
+						CHAT.Method.stopWrite($box, data.name, writing.message); // TODO
 						window.clearInterval(writing.timerID);
 						writing.timerID = null;
 					}

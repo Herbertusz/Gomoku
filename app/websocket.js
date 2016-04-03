@@ -1,5 +1,6 @@
 'use strict';
 
+var fs = require('fs');
 var ioSession = require('socket.io-express-session');
 var Model = require(appRoot + '/app/models/chat.js');
 var HD = require(appRoot + '/libs/hd/hd.math.js');
@@ -198,10 +199,23 @@ module.exports = function(server, session){
 		// Üzenetküldés emitter
 		socket.on('sendMessage', function(data){
 			socket.broadcast.to(data.roomName).emit('sendMessage', data);
-			Model.log({
+			Model.setMessage({
 				userId : userData.id,
 				room : data.roomName,
+				type : 'message',
 				message : data.message,
+				time : data.time
+			}, function(){});
+		});
+
+		// Fájlküldés emitter
+		socket.on('sendFile', function(data){
+			socket.broadcast.to(data.roomName).emit('sendFile', data);
+			Model.setMessage({
+				userId : userData.id,
+				room : data.roomName,
+				type : 'file',
+				message : data.file,
 				time : data.time
 			}, function(){});
 		});

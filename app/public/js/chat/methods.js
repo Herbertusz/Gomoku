@@ -18,14 +18,13 @@ CHAT.Method = {
 		highlighted = HD.Misc.funcParam(highlighted, false);
 		var time = HD.DateTime.format('H:i:s', data.time);
 		var $list = $box.find(CHAT.DOM.list);
-		$list.append('\
-			<li>\
-				<span>' + time + '</span>\
-				<strong class="' + (highlighted ? "self" : "") + '">' + CHAT.Util.escapeHtml(data.name) + '</strong>:\
-				<br />\
-				' + CHAT.Util.escapeHtml(data.message) + '\
-			</li>\
-		');
+		$list.append(`
+			<li>
+				<span>${time}</span>
+				<strong class="${highlighted ? "self" : ""}">${CHAT.Util.escapeHtml(data.name)}</strong>:
+				<br />${CHAT.Util.escapeHtml(data.message)}
+			</li>
+		`);
 		CHAT.Util.scrollToBottom($box);
 	},
 
@@ -39,23 +38,60 @@ CHAT.Method = {
 	appendSystemMessage : function($box, type, name, otherName){
 		var $list = $box.find(CHAT.DOM.list);
 		if (type === 'join'){
-			$list.append('<li class="highlighted">' + name + ' csatlakozott!</li>');
+			$list.append(`<li class="highlighted">${name} csatlakozott!</li>`);
 		}
 		else if (type === 'leave'){
-			$list.append('<li class="highlighted">' + name + ' kilépett!</li>');
+			$list.append(`<li class="highlighted">${name} kilépett!</li>`);
 		}
 		else if (type === 'forcejoinyou'){
-			$list.append('<li class="highlighted">' + name + ' hozzáadott ehhez a csatornához!</li>');
+			$list.append(`<li class="highlighted">${name} hozzáadott ehhez a csatornához!</li>`);
 		}
 		else if (type === 'forcejoinother'){
-			$list.append('<li class="highlighted">' + name + ' hozzáadta ' + otherName + ' felhasználót ehhez a csatornához!</li>');
+			$list.append(`<li class="highlighted">${name} hozzáadta ${otherName} felhasználót ehhez a csatornához!</li>`);
 		}
 		else if (type === 'forceleaveyou'){
-			$list.append('<li class="highlighted">' + name + ' kidobott!</li>');
+			$list.append(`<li class="highlighted">${name} kidobott!</li>`);
 		}
 		else if (type === 'forceleaveother'){
-			$list.append('<li class="highlighted">' + name + ' kidobta ' + otherName + ' felhasználót!</li>');
+			$list.append(`<li class="highlighted">${name} kidobta ${otherName} felhasználót!</li>`);
 		}
+		CHAT.Util.scrollToBottom($box);
+	},
+
+	/**
+	 * Fájl beszúrása
+	 * @param {jQuery} $box
+	 * @param {Object} data
+	 */
+	appendFile : function($box, data){
+		var $element;
+		var time = HD.DateTime.format('H:i:s', data.time);
+		var $list = $box.find(CHAT.DOM.list);
+		var $listItem = $(`
+			<li>
+				<span>${time}</span>
+				<strong>${CHAT.Util.escapeHtml(data.name)}</strong>:
+				<br />
+				<div class="filedisplay"></div>
+			</li>
+		`);
+		if (data.type === "image"){
+			$element = $(`
+				<a href="${data.file}" target="_blank">
+					<img class="send-image" alt="${data.fileData.name}" src="${data.file}" />
+				</a>
+			`);
+		}
+		else{
+			$element = $(`
+				<a href="${data.file}" target="_blank">
+					<img alt="" src="/images/extensions/${data.type}.gif" />
+					${data.fileData.name}
+				</a>
+			`);
+		}
+		$listItem.find('.filedisplay').append($element);
+		$list.append($listItem);
 		CHAT.Util.scrollToBottom($box);
 	},
 
@@ -67,7 +103,7 @@ CHAT.Method = {
 	 */
 	stopWrite : function($box, name, message){
 		if (message.trim().length > 0){
-			$box.find(CHAT.DOM.indicator).html(name + ' szöveget írt be');
+			$box.find(CHAT.DOM.indicator).html(`${name} szöveget írt be`);
 		}
 		else{
 			$box.find(CHAT.DOM.indicator).html('');

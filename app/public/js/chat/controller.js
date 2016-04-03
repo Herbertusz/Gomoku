@@ -74,6 +74,53 @@ $(document).ready(function(){
 		CHAT.Events.Client.sendMessage($box);
 	});
 
+	// Fájlküldés
+	$(CHAT.DOM.box).find(CHAT.DOM.file).change(function(){
+		var $box = $(this).parents('.chat');
+		var files = $box.find(CHAT.DOM.file).get(0).files;
+		CHAT.Events.Client.sendFile($box, files);
+	});
+	$(CHAT.DOM.box).on('click', 'a.notredirect', function(event){
+		//event.preventDefault();
+	});
+	$('body').on('dragover', function(event){
+		event.stopPropagation();
+		event.preventDefault();
+
+		var $dropArea = $(CHAT.DOM.box).find(CHAT.DOM.dropFile);
+
+		$dropArea.addClass("active");
+		if (CHAT.timer.drag.timerID) {
+			window.clearTimeout(CHAT.timer.drag.timerID);
+		}
+		CHAT.timer.drag.timerID = window.setTimeout(function(){
+			$dropArea.removeClass("active");
+		}, CHAT.timer.drag.interval);
+	});
+	$(CHAT.DOM.box).find(CHAT.DOM.dropFile).on('dragover', function(event){
+		event.stopPropagation();
+		event.preventDefault();
+
+		var $dropArea = $(this);
+		$dropArea.addClass("drop-active");
+		if (CHAT.timer.drop.timerID) {
+			window.clearTimeout(CHAT.timer.drop.timerID);
+		}
+		CHAT.timer.drop.timerID = window.setTimeout(function(){
+			$dropArea.removeClass("drop-active");
+		}, CHAT.timer.drop.interval);
+	});
+	$(CHAT.DOM.box).find(CHAT.DOM.dropFile).on('drop', function(event){
+		event.stopPropagation();
+		event.preventDefault();
+
+		var $box = $(this).parents('.chat');
+		var files = event.originalEvent.dataTransfer.files;
+		$(this).removeClass("active").removeClass("drop-active");
+		CHAT.Events.Client.sendFile($box, files);
+	});
+
+
 	// Üzenet gépelése
 	$(CHAT.DOM.box).find(CHAT.DOM.message).keyup(function(event){
 		var $box = $(this).parents('.chat');
@@ -86,6 +133,7 @@ $(document).ready(function(){
 	$(CHAT.DOM.box).find(CHAT.DOM.sendSwitch).change(function(){
 		CHAT.Events.Client.sendMethod($(this));
 	});
+
 
 	// Szerver által küldött események lekezelése
 	for (var func in CHAT.Events.Server){

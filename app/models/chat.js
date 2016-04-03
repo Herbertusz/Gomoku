@@ -66,11 +66,12 @@ var Model = {
 		});
 	},
 
-	log : function(data, callback){
+	setMessage : function(data, callback){
 		var messageId;
 		DB.insert('chat_messages', {
 			'user_id' : data.userId,
 			'room' : data.room,
+			'type' : data.type,
 			'message' : data.message,
 			'created' : HD.DateTime.format('Y-m-d H:i:s', data.time)
 		}, function(error, result){

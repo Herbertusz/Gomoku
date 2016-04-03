@@ -41,6 +41,8 @@ CHAT.DOM = {
 	addUser : '.add-user',
 	list : '.list',
 	message : '.message',
+	file : '.file',
+	dropFile : '.drop-file',
 	indicator : '.indicator',
 	sendButton : '.send',
 	sendSwitch : '.send-switch'
@@ -52,10 +54,18 @@ CHAT.DOM = {
  */
 CHAT.timer = {
 	writing : {
-		timerID : null,
+		timerID : 0,
 		interval : 1000,
 		event : false,
 		message : ''
+	},
+	drag : {
+		timerID : 0,
+		interval : 1000
+	},
+	drop : {
+		timerID : 0,
+		interval : 1000
 	},
 	idle : 300000
 };
@@ -81,7 +91,7 @@ CHAT.Util = {
 			"'" : '&#39;',
 			"/" : '&#x2F;'
 		};
-		var str = String(string).replace(/[&<>"'\/]/g, function(s){
+		str = String(string).replace(/[&<>"'\/]/g, function(s){
 			return entityMap[s];
 		});
 		str = str.replace(/\n/g, '<br />');

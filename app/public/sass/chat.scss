@@ -209,7 +209,24 @@ aside.online {
 					margin: 0 0 0 20px;
 					color: #aaaaaa;
 				}
+
+				.send-image {
+					max-width: 100%;
+					max-height: 120px;
+				}
 			}
+		}
+	}
+
+	.drop-file {
+		background-color: transparent;
+
+		&.active {
+			background-color: #ffdddd;
+		}
+
+		&.drop-active {
+			background-color: #ffaaaa;
 		}
 	}
 }
