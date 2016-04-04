@@ -39,9 +39,9 @@ HD.Misc = {
 	/**
 	 * Alapértelmezett paraméterérték megadása függvényben
 	 * @example par = funcParam(par, 0);
-	 * @param {mixed} param paraméter
-	 * @param {mixed} value alapértelmezett érték
-	 * @returns {mixed} ezt kell értékül adni a paraméternek
+	 * @param {Object} param paraméter
+	 * @param {Object} value alapértelmezett érték
+	 * @returns {Object} ezt kell értékül adni a paraméternek
 	 */
 	funcParam : function(param, value){
 		if (typeof param === "undefined"){
@@ -54,10 +54,10 @@ HD.Misc = {
 
 	/**
 	 * Switch szerkezetet helyettesítő függvény
-	 * @param {mixed} variable változó
+	 * @param {Object} variable változó
 	 * @param {Object} relations változó különböző értékeihez rendelt visszatérési értékek
-	 * @param {mixed} [defaultValue=null] alapértelmezett érték (default)
-	 * @returns {mixed|null}
+	 * @param {Object} [defaultValue=null] alapértelmezett érték (default)
+	 * @returns {Object|null}
 	 */
 	switching : function(variable, relations, defaultValue){
 		if (typeof defaultValue === "undefined") defaultValue = null;
@@ -133,7 +133,7 @@ HD.Number = {
 			T : 1099511627776
 		};
 		for (n = size.length - 1; n >= 0; n--){
-			if (RegExp("[0-9]").test(size[n])){
+			if (/[0-9]/.test(size[n])){
 				n++;
 				break;
 			}
@@ -248,12 +248,7 @@ HD.String = {
 	 * @returns {Boolean} true, ha jó a formátum
 	 */
 	validateEmail : function(email){
-		if (/^[a-z0-9._-]+@[a-z0-9._-]+\.[a-z]+$/.test(email)){
-			return true;
-		}
-		else {
-			return false;
-		}
+		return !!/^[a-z0-9._-]+@[a-z0-9._-]+\.[a-z]+$/.test(email);
 	}
 
 };
@@ -266,7 +261,7 @@ HD.Array = {
 
 	/**
 	 * A PHP in_array() függvénye (indexOf boolean változata)
-	 * @param {mixed} needle keresendő elem
+	 * @param {Object} needle keresendő elem
 	 * @param {Array} haystack tömb
 	 * @returns {Boolean}
 	 */
@@ -274,7 +269,7 @@ HD.Array = {
 		var len, i;
 		if (haystack){
 			if (Array.prototype.indexOf){
-				return (Array.prototype.indexOf.call(haystack, needle) > -1) ? true : false;
+				return (Array.prototype.indexOf.call(haystack, needle) > -1);
 			}
 			len = haystack.length;
 			for (i = 0; i < len; i++){
@@ -306,7 +301,7 @@ HD.Array = {
 	/**
 	 * Hozzáadás tömbhöz, ha még nem tartalmazza az adott értéket
 	 * @param {Array} arr tömb
-	 * @param {Mixed} val érték
+	 * @param {Object} val érték
 	 * @returns {Array} módosított tömb
 	 */
 	addByVal : function(arr, val){
@@ -319,7 +314,7 @@ HD.Array = {
 	/**
 	 * Érték eltávolítása a tömbből
 	 * @param {Array} arr tömb
-	 * @param {Mixed} val érték
+	 * @param {Object} val érték
 	 * @returns {Array} módosított tömb
 	 */
 	removeByVal : function(arr, val){
@@ -352,25 +347,6 @@ HD.Object = {
 			}
 		}
 		return true;
-	},
-
-	/**
-	 * Objektum kulcsainak visszaadása tömbként
-	 * @param {Object} obj objektum
-	 * @returns {Array} kulcsok listája
-	 */
-	getKeys : function(obj){
-		var keys, key;
-		if (Object.keys){
-			return Object.keys(obj);
-		}
-		else {
-			keys = [];
-			for (key in obj){
-				keys.push(key);
-			}
-			return keys;
-		}
 	}
 
 };

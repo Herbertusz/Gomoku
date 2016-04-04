@@ -13,15 +13,22 @@ CHAT.Method = {
 	 * @param {jQuery} $box
 	 * @param {Object} data
 	 * @param {Boolean} [highlighted=false]
+	 * @description data szerkezete: {
+	 *  	id : Number,
+	 * 		message : String,
+	 * 		time : Number,
+	 * 		roomName : String
+	 * }
 	 */
 	appendUserMessage : function($box, data, highlighted){
 		highlighted = HD.Misc.funcParam(highlighted, false);
 		var time = HD.DateTime.format('H:i:s', data.time);
 		var $list = $box.find(CHAT.DOM.list);
+		var userName = CHAT.Method.getUserName(data.id);
 		$list.append(`
 			<li>
 				<span>${time}</span>
-				<strong class="${highlighted ? "self" : ""}">${CHAT.Util.escapeHtml(data.name)}</strong>:
+				<strong class="${highlighted ? "self" : ""}">${CHAT.Util.escapeHtml(userName)}</strong>:
 				<br />${CHAT.Util.escapeHtml(data.message)}
 			</li>
 		`);
@@ -32,28 +39,30 @@ CHAT.Method = {
 	 * Rendszerüzenet beszúrása
 	 * @param {jQuery} $box
 	 * @param {String} type
-	 * @param {String} name
-	 * @param {String} [otherName]
+	 * @param {Number} userId
+	 * @param {Number} [otherUserId]
 	 */
-	appendSystemMessage : function($box, type, name, otherName){
+	appendSystemMessage : function($box, type, userId, otherUserId){
 		var $list = $box.find(CHAT.DOM.list);
+		var userName = CHAT.Method.getUserName(userId);
+		var otherUserName = CHAT.Method.getUserName(otherUserId);
 		if (type === 'join'){
-			$list.append(`<li class="highlighted">${name} csatlakozott!</li>`);
+			$list.append(`<li class="highlighted">${userName} csatlakozott!</li>`);
 		}
 		else if (type === 'leave'){
-			$list.append(`<li class="highlighted">${name} kilépett!</li>`);
+			$list.append(`<li class="highlighted">${userName} kilépett!</li>`);
 		}
 		else if (type === 'forcejoinyou'){
-			$list.append(`<li class="highlighted">${name} hozzáadott ehhez a csatornához!</li>`);
+			$list.append(`<li class="highlighted">${userName} hozzáadott ehhez a csatornához!</li>`);
 		}
 		else if (type === 'forcejoinother'){
-			$list.append(`<li class="highlighted">${name} hozzáadta ${otherName} felhasználót ehhez a csatornához!</li>`);
+			$list.append(`<li class="highlighted">${userName} hozzáadta ${otherUserName} felhasználót ehhez a csatornához!</li>`);
 		}
 		else if (type === 'forceleaveyou'){
-			$list.append(`<li class="highlighted">${name} kidobott!</li>`);
+			$list.append(`<li class="highlighted">${userName} kidobott!</li>`);
 		}
 		else if (type === 'forceleaveother'){
-			$list.append(`<li class="highlighted">${name} kidobta ${otherName} felhasználót!</li>`);
+			$list.append(`<li class="highlighted">${userName} kidobta ${otherUserName} felhasználót!</li>`);
 		}
 		CHAT.Util.scrollToBottom($box);
 	},
@@ -62,15 +71,30 @@ CHAT.Method = {
 	 * Fájl beszúrása
 	 * @param {jQuery} $box
 	 * @param {Object} data
+	 * @param {Boolean} [highlighted=false]
+	 * @description data szerkezete: {
+	 *  	id : Number,
+	 * 		fileData : {
+	 * 			name : String,
+	 *  		size : Number,
+	 *  		type : String
+	 * 		},
+	 * 		file : String,
+	 * 		type : String,
+	 * 		time : Number,
+	 * 		roomName : String
+	 * }
 	 */
-	appendFile : function($box, data){
+	appendFile : function($box, data, highlighted){
+		highlighted = HD.Misc.funcParam(highlighted, false);
 		var $element;
 		var time = HD.DateTime.format('H:i:s', data.time);
 		var $list = $box.find(CHAT.DOM.list);
+		var userName = CHAT.Method.getUserName(data.id);
 		var $listItem = $(`
 			<li>
 				<span>${time}</span>
-				<strong>${CHAT.Util.escapeHtml(data.name)}</strong>:
+				<strong class="${highlighted ? "self" : ""}">${CHAT.Util.escapeHtml(userName)}</strong>:
 				<br />
 				<div class="filedisplay"></div>
 			</li>
@@ -96,18 +120,41 @@ CHAT.Method = {
 	},
 
 	/**
+	 * Gépelés jelzése
+	 * @param {jQuery} $box
+	 * @param {Number} userId
+	 */
+	stillWrite : function($box, userId){
+		var userName = CHAT.Method.getUserName(userId);
+		$box.find(CHAT.DOM.indicator).html(`${userName} éppen ír...`);
+	},
+
+	/**
 	 * Gépelés megállásának lekezelése
 	 * @param {jQuery} $box
-	 * @param {String} name
+	 * @param {Number} userId
 	 * @param {String} message
 	 */
-	stopWrite : function($box, name, message){
+	stopWrite : function($box, userId, message){
+		var userName = CHAT.Method.getUserName(userId);
 		if (message.trim().length > 0){
-			$box.find(CHAT.DOM.indicator).html(`${name} szöveget írt be`);
+			$box.find(CHAT.DOM.indicator).html(`${userName} szöveget írt be`);
 		}
 		else{
 			$box.find(CHAT.DOM.indicator).html('');
 		}
+	},
+
+	/**
+	 * Gépelés jelzése
+	 * @param {jQuery} $box
+	 * @param {Array} errors
+	 */
+	showError : function($box, errors){ // TODO
+		$box.find(CHAT.DOM.indicator).html(errors.join(", "));
+		setTimeout(function(){
+			$box.find(CHAT.DOM.indicator).html('');
+		}, 4000);
 	},
 
 	/**
@@ -128,7 +175,6 @@ CHAT.Method = {
 	 */
 	generateUserList : function($to, userIds, regenerate){
 		regenerate = HD.Misc.funcParam(regenerate, false);
-		var $user, $keep;
 		if (regenerate){
 			$to.children(':not(.cloneable)').remove();
 		}
@@ -261,11 +307,28 @@ CHAT.Method = {
 			success : function(resp){
 				resp.messages.forEach(function(msgData){
 					var timestamp = (new Date(msgData.created.replace(/ /g, 'T'))).getTime() / 1000;
-					CHAT.Method.appendUserMessage($box, {
-						name : msgData.username,
-						time : timestamp,
-						message : msgData.message
-					});
+					if (msgData.type === "message") {
+						CHAT.Method.appendUserMessage($box, {
+							id : msgData.userid,
+							time : timestamp,
+							message : msgData.message,
+							roomName : roomName
+						});
+					}
+					else if (msgData.type === "file"){
+						CHAT.Method.appendFile($box, {
+							id : msgData.userid,
+							fileData : {
+								name : null,
+								size : null,
+								type : null
+							},
+							file : msgData.message,
+							type : null,
+							time : timestamp,
+							roomName : roomName
+						});
+					}
 				});
 				callback();
 			}

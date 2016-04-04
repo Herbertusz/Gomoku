@@ -110,7 +110,6 @@ CHAT.Events = {
 			var $message = $box.find(CHAT.DOM.message);
 			var data = {
 				id : CHAT.USER.id,
-				name : CHAT.USER.name, // TODO
 				message : $message.val(),
 				time : Math.round(Date.now() / 1000),
 				roomName : $box.data("room")
@@ -128,6 +127,8 @@ CHAT.Events = {
 		 * @param {Object} files
 		 */
 		sendFile : function($box, files){
+			var index;
+			var errors = [];
 			var file = files[0];
 			var types = {
 				image : {tag : "img", attr : "src"},
@@ -135,8 +136,7 @@ CHAT.Events = {
 			};
 			var extensions = {
 				image : /^image\/.*$/,
-				text  : /^text\/plain$/,
-				code  : /^(text\/css|.*javascript|.*ecmascript)$/,
+				text  : /^(text\/.*|.*javascript|.*ecmascript)$/,
 				pdf   : /^application\/pdf$/,
 				doc   : /^.*(msword|ms-word|wordprocessingml).*/,
 				xls   : /^.*(ms-excel|spreadsheetml).*$/,
@@ -147,10 +147,10 @@ CHAT.Events = {
 				exec  : /^application\/octet-stream$/,
 				file  : /^.*$/
 			};
+			var allowed_types = ["image", "text", "pdf", "doc", "xls", "ppt", "zip", "audio", "video", "exec", "file"];
 
 			var data = {
 				id : CHAT.USER.id,
-				name : CHAT.USER.name, // TODO
 				fileData : {
 					name : file.name,
 					size : file.size,
@@ -161,14 +161,20 @@ CHAT.Events = {
 				time : Math.round(Date.now() / 1000),
 				roomName : $box.data("room")
 			};
-			if (file.size < 2 * 1024 * 1024){
-				let index, mainType, element, reader;
-				for (index in extensions){
-					if (extensions[index].test(file.type)){
-						data.type = index;
-						break;
-					}
+			if (file.size > 2 * 1024 * 1024){
+				errors.push("size");
+			}
+			for (index in extensions){
+				if (extensions[index].test(file.type)){
+					data.type = index;
+					break;
 				}
+			}
+			if (allowed_types.indexOf(data.type) === -1){
+				errors.push("type");
+			}
+			if (errors.length === 0){
+				let mainType, element, reader;
 				mainType = (data.type === "image") ? "image" : "file";
 				element = document.createElement(types[mainType].tag);
 				reader = new FileReader();
@@ -176,10 +182,13 @@ CHAT.Events = {
 				reader.onload = function(){
 					data.file = reader.result;
 					element[types[mainType].attr] = data.file;
-					CHAT.Method.appendFile($box, data);
+					CHAT.Method.appendFile($box, data, true);
 					CHAT.socket.emit('sendFile', data);
 				};
 				reader.readAsDataURL(file);
+			}
+			else{
+				CHAT.Method.showError($box, errors);
 			}
 		},
 
@@ -191,7 +200,6 @@ CHAT.Events = {
 			var $message = $box.find(CHAT.DOM.message);
 			var data = {
 				id : CHAT.USER.id,
-				name : CHAT.USER.name, // TODO
 				message : $message.val(),
 				time : Math.round(Date.now() / 1000),
 				roomName : $box.data("room")
@@ -226,7 +234,7 @@ CHAT.Events = {
 		 * @param {type} data
 		 */
 		userConnected : function(data){
-			//CHAT.Method.appendSystemMessage($box, 'connect', data.name);
+			//CHAT.Method.appendSystemMessage($box, 'connect', data.id);
 		},
 
 		/**
@@ -237,7 +245,7 @@ CHAT.Events = {
 			$(CHAT.DOM.box).filter(':not(.cloneable)').each(function(){
 				var $box = $(this);
 				if ($box.find(CHAT.DOM.userItems).filter('[data-id="' + data.id + '"]').length > 0){
-					CHAT.Method.appendSystemMessage($box, 'leave', CHAT.Method.getUserName(data.id));
+					CHAT.Method.appendSystemMessage($box, 'leave', data.id);
 					$box.find('[data-id="' + data.id + '"]').remove();
 				}
 			});
@@ -287,7 +295,7 @@ CHAT.Events = {
 				// Csatlakozott a csatornához
 				$box = $(CHAT.DOM.box).filter('[data-room="' + roomData.name + '"]');
 				$users = $box.find(CHAT.DOM.users);
-				CHAT.Method.appendSystemMessage($box, 'join', CHAT.Method.getUserName(roomData.joinedUserId));
+				CHAT.Method.appendSystemMessage($box, 'join', roomData.joinedUserId);
 				CHAT.Method.generateUserList($users, roomData.userIds, true);
 			}
 		},
@@ -304,7 +312,7 @@ CHAT.Events = {
 			var $box;
 			if (extData.roomData) {
 				$box = $(CHAT.DOM.box).filter('[data-room="' + extData.roomData.name + '"]');
-				CHAT.Method.appendSystemMessage($box, 'leave', CHAT.Method.getUserName(extData.userId));
+				CHAT.Method.appendSystemMessage($box, 'leave', extData.userId);
 				$box.find('[data-id="' + extData.userId + '"]').remove();
 			}
 		},
@@ -328,7 +336,7 @@ CHAT.Events = {
 				CHAT.Method.generateUserList($users, extData.roomData.userIds);
 				CHAT.Method.updateStatuses($(CHAT.DOM.online).data("connectedUsers"));
 				CHAT.Method.fillBox($box, extData.roomData.name);
-				CHAT.Method.appendSystemMessage($box, 'forcejoinyou', CHAT.Method.getUserName(extData.triggerId));
+				CHAT.Method.appendSystemMessage($box, 'forcejoinyou', extData.triggerId);
 				CHAT.socket.emit('roomJoin', {
 					userId : CHAT.USER.id,
 					roomName : extData.roomData.name
@@ -338,9 +346,7 @@ CHAT.Events = {
 				// Csatlakozott a csatornához
 				$box = $(CHAT.DOM.box).filter('[data-room="' + extData.roomData.name + '"]');
 				$users = $box.find(CHAT.DOM.users);
-				CHAT.Method.appendSystemMessage(
-					$box, 'forcejoinother', CHAT.Method.getUserName(extData.triggerId), CHAT.Method.getUserName(extData.userId)
-				);
+				CHAT.Method.appendSystemMessage($box, 'forcejoinother', extData.triggerId, extData.userId);
 				CHAT.Method.generateUserList($users, extData.roomData.userIds, true);
 			}
 		},
@@ -357,7 +363,7 @@ CHAT.Events = {
 		roomForceLeaved : function(extData){
 			var $box = $(CHAT.DOM.box).filter('[data-room="' + extData.roomData.name + '"]');
 			if (extData.userId === CHAT.USER.id){
-				CHAT.Method.appendSystemMessage($box, 'forceleaveyou', CHAT.Method.getUserName(extData.triggerId));
+				CHAT.Method.appendSystemMessage($box, 'forceleaveyou', extData.triggerId);
 				CHAT.socket.emit('roomLeave', {
 					silent : true,
 					userId : CHAT.USER.id,
@@ -367,9 +373,7 @@ CHAT.Events = {
 				$box.find(CHAT.DOM.userThrow).addClass("disabled");
 			}
 			else {
-				CHAT.Method.appendSystemMessage(
-					$box, 'forceleaveother', CHAT.Method.getUserName(extData.triggerId), CHAT.Method.getUserName(extData.userId)
-				);
+				CHAT.Method.appendSystemMessage($box, 'forceleaveother', extData.triggerId, extData.userId);
 			}
 			$box.find('[data-id="' + extData.userId + '"]').remove();
 		},
@@ -377,9 +381,8 @@ CHAT.Events = {
 		/**
 		 * Üzenetküldés
 		 * @param {Object} data
-		 * @description szerkezet: {
+		 * @description data szerkezete: {
 		 *  	id : Number,
-		 * 		name : String,
 		 * 		message : String,
 		 * 		time : Number,
 		 * 		roomName : String
@@ -389,7 +392,7 @@ CHAT.Events = {
 			var $box = $(CHAT.DOM.box).filter('[data-room="' + data.roomName + '"]');
 			if ($box.length === 0) return;
 			CHAT.Method.appendUserMessage($box, data);
-			CHAT.Method.stopWrite($box, data.name, ''); // TODO
+			CHAT.Method.stopWrite($box, data.id, '');
 			window.clearInterval(CHAT.timer.writing.timerID);
 			CHAT.timer.writing.timerID = null;
 		},
@@ -397,9 +400,8 @@ CHAT.Events = {
 		/**
 		 * Fájlküldés
 		 * @param {Object} data
-		 * @description szerkezet: {
+		 * @description data szerkezete: {
 		 *  	id : Number,
-		 * 		name : String,
 		 * 		fileData : {
 		 * 			name : String,
 		 *  		size : Number,
@@ -415,7 +417,7 @@ CHAT.Events = {
 			var $box = $(CHAT.DOM.box).filter('[data-room="' + data.roomName + '"]');
 			if ($box.length === 0) return;
 			CHAT.Method.appendFile($box, data);
-			CHAT.Method.stopWrite($box, data.name, '');
+			CHAT.Method.stopWrite($box, data.id, '');
 			window.clearInterval(CHAT.timer.writing.timerID);
 			CHAT.timer.writing.timerID = null;
 		},
@@ -425,7 +427,6 @@ CHAT.Events = {
 		 * @param {Object} data
 		 * @description szerkezet: {
 		 *  	id : Number,
-		 * 		name : String,
 		 * 		message : String,
 		 * 		time : Number,
 		 * 		roomName : String
@@ -438,10 +439,10 @@ CHAT.Events = {
 			writing.event = true;
 			writing.message = data.message;
 			if (!writing.timerID){
-				$box.find(CHAT.DOM.indicator).html(`${data.name} éppen ír...`); // TODO
+				CHAT.Method.stillWrite($box, data.id);
 				writing.timerID = window.setInterval(function(){
 					if (!writing.event){
-						CHAT.Method.stopWrite($box, data.name, writing.message); // TODO
+						CHAT.Method.stopWrite($box, data.id, writing.message);
 						window.clearInterval(writing.timerID);
 						writing.timerID = null;
 					}

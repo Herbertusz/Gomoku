@@ -47,7 +47,8 @@ var Model = {
 		DB.query("\
 			SELECT\
 				`cm`.*,\
-				`cu`.`username`\
+				`cu`.`id` AS `userid`,\
+				`cu`.`username` AS `username`\
 			FROM\
 				`chat_messages` `cm`\
 				LEFT JOIN `chat_users` `cu` ON `cm`.`user_id` = `cu`.`id`\

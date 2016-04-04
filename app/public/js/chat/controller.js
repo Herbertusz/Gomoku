@@ -83,6 +83,24 @@ $(document).ready(function(){
 	$(CHAT.DOM.box).on('click', 'a.notredirect', function(event){
 		//event.preventDefault();
 	});
+
+	$(CHAT.DOM.box).find(CHAT.DOM.dropFile).on('drag dragstart dragend dragover dragenter dragleave drop', function(event){
+		event.preventDefault();
+		event.stopPropagation();
+	})
+	.on('dragover dragenter', function(){
+		$(this).addClass('active');
+	})
+	.on('dragleave dragend drop', function(){
+		$(this).removeClass('active');
+	})
+	.on('drop', function(event){
+		var $box = $(this).parents('.chat');
+		var files = event.originalEvent.dataTransfer.files;
+		CHAT.Events.Client.sendFile($box, files);
+	});
+
+	/*
 	$('body').on('dragover', function(event){
 		event.stopPropagation();
 		event.preventDefault();
@@ -97,29 +115,7 @@ $(document).ready(function(){
 			$dropArea.removeClass("active");
 		}, CHAT.timer.drag.interval);
 	});
-	$(CHAT.DOM.box).find(CHAT.DOM.dropFile).on('dragover', function(event){
-		event.stopPropagation();
-		event.preventDefault();
-
-		var $dropArea = $(this);
-		$dropArea.addClass("drop-active");
-		if (CHAT.timer.drop.timerID) {
-			window.clearTimeout(CHAT.timer.drop.timerID);
-		}
-		CHAT.timer.drop.timerID = window.setTimeout(function(){
-			$dropArea.removeClass("drop-active");
-		}, CHAT.timer.drop.interval);
-	});
-	$(CHAT.DOM.box).find(CHAT.DOM.dropFile).on('drop', function(event){
-		event.stopPropagation();
-		event.preventDefault();
-
-		var $box = $(this).parents('.chat');
-		var files = event.originalEvent.dataTransfer.files;
-		$(this).removeClass("active").removeClass("drop-active");
-		CHAT.Events.Client.sendFile($box, files);
-	});
-
+	*/
 
 	// Üzenet gépelése
 	$(CHAT.DOM.box).find(CHAT.DOM.message).keyup(function(event){
