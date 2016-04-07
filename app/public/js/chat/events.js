@@ -183,7 +183,17 @@ CHAT.Events = {
 					data.file = reader.result;
 					element[types[mainType].attr] = data.file;
 					CHAT.Method.appendFile($box, data, true);
-					CHAT.socket.emit('sendFile', data);
+					CHAT.lzma.compress(data.file, 1, function(result, error){
+						if (error){
+							;
+						}
+						else {
+							data.file = result;
+						}
+						CHAT.socket.emit('sendFile', data);
+					}, function(percent){
+						;
+					});
 				};
 				reader.readAsDataURL(file);
 			}
@@ -416,7 +426,20 @@ CHAT.Events = {
 		sendFile : function(data){
 			var $box = $(CHAT.DOM.box).filter('[data-room="' + data.roomName + '"]');
 			if ($box.length === 0) return;
-			CHAT.Method.appendFile($box, data);
+			if (Array.isArray(data.file)){
+				LZMA.decompress(data.file, function(result, error){
+					if (error){
+						;
+					}
+					else {
+						data.file = result;
+						CHAT.Method.appendFile($box, data);
+					}
+				});
+			}
+			else{
+				CHAT.Method.appendFile($box, data);
+			}
 			CHAT.Method.stopWrite($box, data.id, '');
 			window.clearInterval(CHAT.timer.writing.timerID);
 			CHAT.timer.writing.timerID = null;

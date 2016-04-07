@@ -204,6 +204,7 @@ module.exports = function(server, session){
 				room : data.roomName,
 				type : 'message',
 				message : data.message,
+				file : null,
 				time : data.time
 			}, function(){});
 		});
@@ -215,7 +216,8 @@ module.exports = function(server, session){
 				userId : userData.id,
 				room : data.roomName,
 				type : 'file',
-				message : data.file,
+				message : null,
+				file : data.file,
 				time : data.time
 			}, function(){});
 		});

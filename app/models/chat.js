@@ -68,8 +68,25 @@ var Model = {
 	},
 
 	setMessage : function(data, callback){
-		var messageId;
-		DB.insert('chat_messages', {
+		var messageId, sqlSegment;
+		if (Array.isArray(data.file)){
+			data.file.forEach(function(element, index, arr){
+				arr[index] += 128;
+			});
+			sqlSegment = "CHAR(" + data.file + ")";
+		}
+		else{
+			sqlSegment = `'${data.file}'`;
+		}
+		DB.query(`
+			INSERT INTO
+				chat_messages
+			(
+				user_id, room, type, message, file, created
+			) VALUES (
+				:user_id, :room, :type, :message, ${sqlSegment}, :created
+			)
+		`, {
 			'user_id' : data.userId,
 			'room' : data.room,
 			'type' : data.type,
@@ -80,6 +97,19 @@ var Model = {
 			messageId = result.insertId;
 			callback.call(this, messageId);
 		});
+
+		/*DB.insert('chat_messages', {
+			'user_id' : data.userId,
+			'room' : data.room,
+			'type' : data.type,
+			'message' : data.message,
+			'file' : "CHAR(" + data.file + ")",
+			'created' : HD.DateTime.format('Y-m-d H:i:s', data.time)
+		}, function(error, result){
+			if (error) throw error;
+			messageId = result.insertId;
+			callback.call(this, messageId);
+		});*/
 	}
 
 };

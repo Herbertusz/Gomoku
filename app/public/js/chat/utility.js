@@ -17,6 +17,8 @@ CHAT.USER = {
  */
 CHAT.socket = io.connect('http://' + DOMAIN + ':' + WSPORT + '/chat');
 
+CHAT.lzma = LZMA;
+
 /**
  * jQuery szelektorok
  * @type Object

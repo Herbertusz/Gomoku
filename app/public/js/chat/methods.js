@@ -146,7 +146,7 @@ CHAT.Method = {
 	},
 
 	/**
-	 * Gépelés jelzése
+	 * Hibaüzenetek kiírása
 	 * @param {jQuery} $box
 	 * @param {Array} errors
 	 */
@@ -307,7 +307,7 @@ CHAT.Method = {
 			success : function(resp){
 				resp.messages.forEach(function(msgData){
 					var timestamp = (new Date(msgData.created.replace(/ /g, 'T'))).getTime() / 1000;
-					if (msgData.type === "message") {
+					if (msgData.type === "message"){
 						CHAT.Method.appendUserMessage($box, {
 							id : msgData.userid,
 							time : timestamp,
@@ -316,18 +316,23 @@ CHAT.Method = {
 						});
 					}
 					else if (msgData.type === "file"){
-						CHAT.Method.appendFile($box, {
-							id : msgData.userid,
-							fileData : {
-								name : null,
-								size : null,
-								type : null
-							},
-							file : msgData.message,
-							type : null,
-							time : timestamp,
-							roomName : roomName
+						msgData.file.data.forEach(function(element, index, arr){
+							arr[index] -= 128;
 						});
+						CHAT.lzma.decompress(msgData.file.data, function(file, error){
+							CHAT.Method.appendFile($box, {
+								id : msgData.userid,
+								fileData : {
+									name : null,
+									size : null,
+									type : null
+								},
+								file : file,
+								type : null,
+								time : timestamp,
+								roomName : roomName
+							});
+						}, function(percent){});
 					}
 				});
 				callback();
