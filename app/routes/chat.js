@@ -3,7 +3,18 @@
 var express = require('express');
 var router = express.Router();
 var session = require('express-session');
+var multer = require('multer');
 var Model = require(appRoot + '/app/models/chat.js');
+
+var storage = multer.diskStorage({
+	destination : function(req, file, callback){
+		callback(null, appRoot + '/storage');
+	},
+	filename : function(req, file, callback){
+		callback(null, file.fieldname + '-' + Date.now());
+	}
+});
+var upload = multer({storage : storage});
 
 router.get('/', function(req, res, next){
 
@@ -27,6 +38,18 @@ router.post('/getroommessages', function(req, res, next){
 			messages : messages
 		});
 	});
+
+});
+
+router.post('/uploadfile', upload.single(), function(req, res, next){
+
+	;
+
+	/*Model.uploadFile(req.body.roomName, function(messages){
+		res.send({
+			messages : messages
+		});
+	});*/
 
 });
 

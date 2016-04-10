@@ -80,14 +80,14 @@ CHAT.Method = {
 	 *  		type : String
 	 * 		},
 	 * 		file : String,
-	 * 		type : String,
+	 * 		store : String,
 	 * 		time : Number,
 	 * 		roomName : String
 	 * }
 	 */
 	appendFile : function($box, data, highlighted){
 		highlighted = HD.Misc.funcParam(highlighted, false);
-		var $element;
+		var $element, tpl, img, imgSrc;
 		var time = HD.DateTime.format('H:i:s', data.time);
 		var $list = $box.find(CHAT.DOM.list);
 		var userName = CHAT.Method.getUserName(data.id);
@@ -100,23 +100,30 @@ CHAT.Method = {
 			</li>
 		`);
 		if (data.type === "image"){
-			$element = $(`
+			imgSrc = data.file;
+			tpl = `
 				<a href="${data.file}" target="_blank">
-					<img class="send-image" alt="${data.fileData.name}" src="${data.file}" />
+					<img class="send-image" alt="${data.fileData.name}" src="${imgSrc}" />
 				</a>
-			`);
+			`;
 		}
 		else{
-			$element = $(`
+			imgSrc = `/images/extensions/${data.type}.gif`;
+			tpl = `
 				<a href="${data.file}" target="_blank">
-					<img alt="" src="/images/extensions/${data.type}.gif" />
+					<img alt="" src="${imgSrc}" />
 					${data.fileData.name}
 				</a>
-			`);
+			`;
 		}
-		$listItem.find('.filedisplay').append($element);
-		$list.append($listItem);
-		CHAT.Util.scrollToBottom($box);
+		img = document.createElement('img');
+		img.onload = function(){
+			$element = $(tpl);
+			$listItem.find('.filedisplay').append($element);
+			$list.append($listItem);
+			CHAT.Util.scrollToBottom($box);
+		};
+		img.src = imgSrc;
 	},
 
 	/**
@@ -305,34 +312,83 @@ CHAT.Method = {
 			},
 			dataType : "json",
 			success : function(resp){
+				/**
+				 * @description resp : {
+				 * 		messages : [
+				 * 			0 : {
+				 * 				messageId : Number,
+				 *				userId : Number,
+				 *				room : String,
+				 *				fileId : Number,
+				 *				message : String,
+				 *				created : String,
+				 *				fileName : String,
+				 *				fileSize : Number,
+				 *				fileType : String,
+				 *				fileMainType : String,
+				 *				fileStore : String,
+				 *				fileBase64 : String,
+				 *				fileZip : Array,
+				 *				fileUrl : String,
+				 *				fileData : String|Array
+				 *				userName : String
+				 *			},
+				 *			...
+				 *		]
+				 * 	}
+				 */
 				resp.messages.forEach(function(msgData){
+					var data;
+					// FIXME: 2 óra csúszás!
 					var timestamp = (new Date(msgData.created.replace(/ /g, 'T'))).getTime() / 1000;
-					if (msgData.type === "message"){
+					if (!msgData.fileId){
 						CHAT.Method.appendUserMessage($box, {
-							id : msgData.userid,
+							id : msgData.userId,
 							time : timestamp,
 							message : msgData.message,
 							roomName : roomName
 						});
 					}
-					else if (msgData.type === "file"){
-						msgData.file.data.forEach(function(element, index, arr){
-							arr[index] -= 128;
-						});
-						CHAT.lzma.decompress(msgData.file.data, function(file, error){
-							CHAT.Method.appendFile($box, {
-								id : msgData.userid,
-								fileData : {
-									name : null,
-									size : null,
-									type : null
-								},
-								file : file,
-								type : null,
-								time : timestamp,
-								roomName : roomName
+					else{
+						data = {
+							id : msgData.userId,
+							fileData : {
+								name : msgData.fileName,
+								size : msgData.fileSize,
+								type : msgData.fileType
+							},
+							file : null,
+							type : msgData.fileMainType,
+							time : timestamp,
+							roomName : roomName
+						};
+						if (msgData.fileStore === 'base64'){
+							data.file = msgData.fileBase64;
+							CHAT.Method.appendFile($box, data);
+						}
+						else if (msgData.fileStore === 'upload'){
+							data.file = msgData.fileUrl;
+							CHAT.Method.appendFile($box, data);
+						}
+						else if (msgData.fileStore === 'zip'){
+							msgData.fileZip.data.forEach(function(element, index, arr){
+								arr[index] -= 128;
 							});
-						}, function(percent){});
+							// FIXME: nem indul el a decompress
+							CHAT.lzma.decompress(msgData.fileZip, function(file, error){
+								console.log(data);
+								if (error){
+									console.log(error);
+								}
+								else{
+									data.file = file;
+									CHAT.Method.appendFile($box, data);
+								}
+							}, function(percent){
+								console.log(percent);
+								// TODO: progressbar
+							});
+						}
 					}
 				});
 				callback();

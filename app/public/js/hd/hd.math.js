@@ -38,7 +38,7 @@ HD.Math = {
 		value = +value;
 		exp = +exp;
 		// If the value is not a number or the exp is not an integer...
-		if (isNaN(value) || !(typeof exp === 'number' && exp % 1 === 0)) {
+		if (isNaN(value) || !(typeof exp === 'number' && exp % 1 === 0)){
 			return NaN;
 		}
 		// Shift

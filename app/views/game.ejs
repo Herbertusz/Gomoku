@@ -5,39 +5,39 @@
 				<div class="error"></div>
 				<div class="label">
 					<span>Pálya mérete:</span>
-					<input class="spinner" type="text" name="gridSize_x" value="20" readonly="readonly" /> x
-					<input class="spinner" type="text" name="gridSize_y" value="15" readonly="readonly" />
+					<input class="spinner" type="text" name="gridSize_x" value="20" readonly /> x
+					<input class="spinner" type="text" name="gridSize_y" value="15" readonly />
 				</div>
 				<div class="label">
 					<span>Nyeréshez szükséges sor/oszlop/átló hossza:</span>
-					<input class="spinner" type="text" name="connectNum" value="5" readonly="readonly" />
+					<input class="spinner" type="text" name="connectNum" value="5" readonly />
 				</div>
 				<div class="label">
 					<span>Játékosok száma:</span>
 					<select name="playerNum">
-						<option value="2" selected="selected">2</option>
+						<option value="2" selected>2</option>
 						<option value="3">3</option>
 					</select>
 				</div>
 				<div class="label">
 					<span>Játékosok algoritmusa:</span>
 					<select name="playerAIs[]">
-						<option value="human" selected="selected">human</option>
+						<option value="human" selected>human</option>
 					</select>
 					<select name="playerAIs[]">
-						<option value="human" selected="selected">human</option>
+						<option value="human" selected>human</option>
 						<option value="random">random</option>
 					</select>
-					<select name="playerAIs[]" disabled="disabled">
-						<option value="human" selected="selected">human</option>
+					<select name="playerAIs[]" disabled>
+						<option value="human" selected>human</option>
 						<option value="random">random</option>
 					</select>
 				</div>
 				<div class="label">
 					<span>Játékosok neve:</span>
 					<input type="text" name="playerNames[]" value="" placeholder="Saját név" />
-					<input type="text" name="playerNames[]" value="" disabled="disabled" />
-					<input type="text" name="playerNames[]" value="" disabled="disabled" />
+					<input type="text" name="playerNames[]" value="" disabled />
+					<input type="text" name="playerNames[]" value="" disabled />
 				</div>
 				<div class="label">
 					<span>Játékosok jele:</span>
@@ -50,9 +50,9 @@
 				</div>
 				<div class="label">
 					<span>Kezdő játékos:</span>
-					<input type="radio" name="firstPlayerID" value="0" checked="checked" />
+					<input type="radio" name="firstPlayerID" value="0" checked />
 					<input type="radio" name="firstPlayerID" value="1" />
-					<input type="radio" name="firstPlayerID" value="2" disabled="disabled" />
+					<input type="radio" name="firstPlayerID" value="2" disabled />
 				</div>
 				<button id="start">Start!</button>
 			</div>

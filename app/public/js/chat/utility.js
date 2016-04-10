@@ -17,6 +17,10 @@ CHAT.USER = {
  */
 CHAT.socket = io.connect('http://' + DOMAIN + ':' + WSPORT + '/chat');
 
+/**
+ * Tömörítés
+ * @type {Object}
+ */
 CHAT.lzma = LZMA;
 
 /**
@@ -43,7 +47,8 @@ CHAT.DOM = {
 	addUser : '.add-user',
 	list : '.list',
 	message : '.message',
-	file : '.file',
+	file : '.fileuploader .file',
+	fileTrigger : '.fileuploader .trigger',
 	dropFile : '.drop-file',
 	indicator : '.indicator',
 	sendButton : '.send',

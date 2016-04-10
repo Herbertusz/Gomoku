@@ -127,79 +127,93 @@ CHAT.Events = {
 		 * @param {Object} files
 		 */
 		sendFile : function($box, files){
-			var index;
-			var errors = [];
-			var file = files[0];
-			var types = {
-				image : {tag : "img", attr : "src"},
-				file : {tag : "a", attr : "href"}
-			};
-			var extensions = {
-				image : /^image\/.*$/,
-				text  : /^(text\/.*|.*javascript|.*ecmascript)$/,
-				pdf   : /^application\/pdf$/,
-				doc   : /^.*(msword|ms-word|wordprocessingml).*/,
-				xls   : /^.*(ms-excel|spreadsheetml).*$/,
-				ppt   : /^.*(ms-powerpoint|presentationml).*$/,
-				zip   : /^.*(zip|compressed).*$/,
-				audio : /^audio\/.*$/,
-				video : /^video\/.*$/,
-				exec  : /^application\/octet-stream$/,
-				file  : /^.*$/
-			};
-			var allowed_types = ["image", "text", "pdf", "doc", "xls", "ppt", "zip", "audio", "video", "exec", "file"];
-
-			var data = {
-				id : CHAT.USER.id,
-				fileData : {
-					name : file.name,
-					size : file.size,
-					type : file.type
-				},
-				file : null,
-				type : "file",
-				time : Math.round(Date.now() / 1000),
-				roomName : $box.data("room")
-			};
-			if (file.size > 2 * 1024 * 1024){
-				errors.push("size");
-			}
-			for (index in extensions){
-				if (extensions[index].test(file.type)){
-					data.type = index;
-					break;
-				}
-			}
-			if (allowed_types.indexOf(data.type) === -1){
-				errors.push("type");
-			}
-			if (errors.length === 0){
-				let mainType, element, reader;
-				mainType = (data.type === "image") ? "image" : "file";
-				element = document.createElement(types[mainType].tag);
-				reader = new FileReader();
-				//element.file = data.fileData;
-				reader.onload = function(){
-					data.file = reader.result;
-					element[types[mainType].attr] = data.file;
-					CHAT.Method.appendFile($box, data, true);
-					CHAT.lzma.compress(data.file, 1, function(result, error){
-						if (error){
-							;
-						}
-						else {
-							data.file = result;
-						}
-						CHAT.socket.emit('sendFile', data);
-					}, function(percent){
-						;
-					});
-				};
-				reader.readAsDataURL(file);
+			var store = CHAT.Config.fileTransfer.store;
+			var types = CHAT.Config.fileTransfer.types;
+			var extensions = CHAT.Config.fileTransfer.extensions;
+			var allowedTypes = CHAT.Config.fileTransfer.allowedTypes;
+			var maxSize = CHAT.Config.fileTransfer.maxSize;
+			if (!CHAT.Config.fileTransfer.multiple){
+				files = [files[0]];
 			}
 			else{
-				CHAT.Method.showError($box, errors);
+				files = Array.prototype.slice.call(files);
 			}
+
+			files.forEach(function(file){
+				let i, errors = [];
+				let data = {
+					id : CHAT.USER.id,
+					fileData : {
+						name : file.name,
+						size : file.size,
+						type : file.type
+					},
+					file : null,
+					store : store,
+					type : '',
+					time : Math.round(Date.now() / 1000),
+					roomName : $box.data("room")
+				};
+
+				if (file.size > maxSize){
+					errors.push("size");
+				}
+				for (i in extensions){
+					if (extensions[i].test(file.type)){
+						data.type = i;
+						break;
+					}
+				}
+				if (allowedTypes.indexOf(data.type) === -1){
+					errors.push("type");
+				}
+
+				if (errors.length === 0){
+					let mainType, element, reader;
+					mainType = (data.type === "image") ? "image" : "file";
+					element = document.createElement(types[mainType].tag);
+					reader = new FileReader();
+					reader.onload = (function(data){
+						return function(){
+							data.file = reader.result;
+							element[types[mainType].attr] = data.file;
+							CHAT.Method.appendFile($box, data, true);
+
+							if (store === 'base64'){
+								// base64 tárolása db-ben
+								CHAT.socket.emit('sendFile', data);
+							}
+							else if (store === 'upload'){
+								// fájlfeltöltés, url tárolása db-ben
+								let xhr = new XMLHttpRequest();
+								xhr.onload = function(){
+									;
+								};
+								xhr.open("POST", "/chat/uploadfile");
+								xhr.send(data.file);
+							}
+							else if (store === 'zip'){
+								// tömörített base64 tárolása db-ben
+								CHAT.lzma.compress(data.file, 1, function(result, error){
+									if (error){
+										console.log(error);
+									}
+									else{
+										data.file = result;
+									}
+									CHAT.socket.emit('sendFile', data);
+								}, function(percent){
+									// TODO: progressbar
+								});
+							}
+						};
+					})(data);
+					reader.readAsDataURL(file);
+				}
+				else{
+					CHAT.Method.showError($box, errors);
+				}
+			});
 		},
 
 		/**
@@ -320,7 +334,7 @@ CHAT.Events = {
 		 */
 		roomLeaved : function(extData){
 			var $box;
-			if (extData.roomData) {
+			if (extData.roomData){
 				$box = $(CHAT.DOM.box).filter('[data-room="' + extData.roomData.name + '"]');
 				CHAT.Method.appendSystemMessage($box, 'leave', extData.userId);
 				$box.find('[data-id="' + extData.userId + '"]').remove();
@@ -418,6 +432,7 @@ CHAT.Events = {
 		 *  		type : String
 		 * 		},
 		 * 		file : String,
+		 * 		store : String,
 		 * 		type : String,
 		 * 		time : Number,
 		 * 		roomName : String
@@ -426,19 +441,21 @@ CHAT.Events = {
 		sendFile : function(data){
 			var $box = $(CHAT.DOM.box).filter('[data-room="' + data.roomName + '"]');
 			if ($box.length === 0) return;
-			if (Array.isArray(data.file)){
+			if (data.store === 'base64' || data.store === 'upload'){
+				CHAT.Method.appendFile($box, data);
+			}
+			else if (data.store === 'zip'){
 				LZMA.decompress(data.file, function(result, error){
 					if (error){
-						;
+						console.log(error);
 					}
 					else {
 						data.file = result;
 						CHAT.Method.appendFile($box, data);
 					}
+				}, function(percent){
+					// TODO: progressbar
 				});
-			}
-			else{
-				CHAT.Method.appendFile($box, data);
 			}
 			CHAT.Method.stopWrite($box, data.id, '');
 			window.clearInterval(CHAT.timer.writing.timerID);

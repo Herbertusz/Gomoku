@@ -44,19 +44,32 @@ var Model = {
 	},
 
 	getRoomMessages : function(roomName, callback){
-		DB.query("\
-			SELECT\
-				`cm`.*,\
-				`cu`.`id` AS `userid`,\
-				`cu`.`username` AS `username`\
-			FROM\
-				`chat_messages` `cm`\
-				LEFT JOIN `chat_users` `cu` ON `cm`.`user_id` = `cu`.`id`\
-			WHERE\
-				`cm`.`room` = :roomName\
-			ORDER BY\
-				`cm`.`created` ASC\
-		", {
+		DB.query(`
+			SELECT
+				cm.id AS messageId,
+				cm.user_id AS userId,
+				cm.room,
+				cm.file_id AS fileId,
+				cm.message,
+				cm.created,
+				cf.name AS fileName,
+				cf.size AS fileSize,
+				cf.type AS fileType,
+				cf.main_type AS fileMainType,
+				cf.store AS fileStore,
+				cf.base64 AS fileBase64,
+				cf.zip AS fileZip,
+				cf.url AS fileUrl,
+				cu.username AS userName
+			FROM
+				chat_messages cm
+				LEFT JOIN chat_files cf ON cm.file_id = cf.id
+				LEFT JOIN chat_users cu ON cm.user_id = cu.id
+			WHERE
+				cm.room = :roomName
+			ORDER BY
+				cm.created ASC
+		`, {
 			roomName : roomName
 		}, function(error, rows, fields){
 			if (error) throw error;
@@ -68,28 +81,11 @@ var Model = {
 	},
 
 	setMessage : function(data, callback){
-		var messageId, sqlSegment;
-		if (Array.isArray(data.file)){
-			data.file.forEach(function(element, index, arr){
-				arr[index] += 128;
-			});
-			sqlSegment = "CHAR(" + data.file + ")";
-		}
-		else{
-			sqlSegment = `'${data.file}'`;
-		}
-		DB.query(`
-			INSERT INTO
-				chat_messages
-			(
-				user_id, room, type, message, file, created
-			) VALUES (
-				:user_id, :room, :type, :message, ${sqlSegment}, :created
-			)
-		`, {
+		var messageId;
+		DB.insert('chat_messages', {
 			'user_id' : data.userId,
 			'room' : data.room,
-			'type' : data.type,
+			'file_id' : data.fileId,
 			'message' : data.message,
 			'created' : HD.DateTime.format('Y-m-d H:i:s', data.time)
 		}, function(error, result){
@@ -97,19 +93,68 @@ var Model = {
 			messageId = result.insertId;
 			callback.call(this, messageId);
 		});
+	},
 
-		/*DB.insert('chat_messages', {
-			'user_id' : data.userId,
-			'room' : data.room,
-			'type' : data.type,
-			'message' : data.message,
-			'file' : "CHAR(" + data.file + ")",
-			'created' : HD.DateTime.format('Y-m-d H:i:s', data.time)
-		}, function(error, result){
-			if (error) throw error;
-			messageId = result.insertId;
-			callback.call(this, messageId);
-		});*/
+	setFile : function(data, callback){
+		var This = this;
+		var messageForFile = function(fdata, fileId){
+			This.setMessage({
+				'userId' : fdata.userId,
+				'room' : fdata.room,
+				'fileId' : fileId,
+				'message' : null,
+				'created' : HD.DateTime.format('Y-m-d H:i:s', fdata.time)
+			}, function(messageId){
+				callback.call(this, fileId, messageId);
+			});
+		};
+
+		if (data.store === 'base64'){
+			DB.insert('chat_files', {
+				'name' : data.fileData.name,
+				'size' : data.fileData.size,
+				'type' : data.fileData.type,
+				'main_type' : data.mainType,
+				'store' : data.store,
+				'base64' : data.file
+			}, function(error, result){
+				if (error) throw error;
+				messageForFile(data, result.insertId);
+			});
+		}
+		else if (data.store === 'upload'){
+			// TODO
+			DB.insert('chat_files', {
+				'name' : data.fileData.name,
+				'size' : data.fileData.size,
+				'type' : data.fileData.type,
+				'main_type' : data.mainType,
+				'store' : data.store,
+				'url' : ''
+			}, function(error, result){
+				if (error) throw error;
+				messageForFile(data, result.insertId);
+			});
+		}
+		else if (data.store === 'zip'){
+			data.file.forEach(function(element, index, arr){
+				arr[index] += 128;
+			});
+			DB.query(`
+				INSERT INTO chat_files
+				(name, size, type, main_type, store, zip) VALUES
+				(:name, :size, :type, :main_type, :store, CHAR(${data.file}))
+			`, {
+				'name' : data.fileData.name,
+				'size' : data.fileData.size,
+				'type' : data.fileData.type,
+				'main_type' : data.mainType,
+				'store' : data.store
+			}, function(error, result){
+				if (error) throw error;
+				messageForFile(data, result.insertId);
+			});
+		}
 	}
 
 };

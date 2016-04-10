@@ -75,10 +75,15 @@ $(document).ready(function(){
 	});
 
 	// Fájlküldés
+	$(CHAT.DOM.box).find(CHAT.DOM.fileTrigger).click(function(){
+		$(this).parents(CHAT.DOM.box).find(CHAT.DOM.file).trigger("click");
+	});
 	$(CHAT.DOM.box).find(CHAT.DOM.file).change(function(){
 		var $box = $(this).parents('.chat');
 		var files = $box.find(CHAT.DOM.file).get(0).files;
-		CHAT.Events.Client.sendFile($box, files);
+		if (files.length > 0){
+			CHAT.Events.Client.sendFile($box, files);
+		}
 	});
 	$(CHAT.DOM.box).on('click', 'a.notredirect', function(event){
 		//event.preventDefault();
@@ -108,7 +113,7 @@ $(document).ready(function(){
 		var $dropArea = $(CHAT.DOM.box).find(CHAT.DOM.dropFile);
 
 		$dropArea.addClass("active");
-		if (CHAT.timer.drag.timerID) {
+		if (CHAT.timer.drag.timerID){
 			window.clearTimeout(CHAT.timer.drag.timerID);
 		}
 		CHAT.timer.drag.timerID = window.setTimeout(function(){

@@ -11,6 +11,7 @@
     "ejs": "^2.4.1",
     "express": "^4.13.4",
     "express-session": "^1.13.0",
+    "multer": "^1.1.0",
     "mysql": "^2.10.2",
     "serve-favicon": "^2.3.0",
     "session-file-store": "^0.2.0",

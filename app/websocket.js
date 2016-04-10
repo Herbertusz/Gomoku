@@ -202,9 +202,8 @@ module.exports = function(server, session){
 			Model.setMessage({
 				userId : userData.id,
 				room : data.roomName,
-				type : 'message',
+				fileId : 0,
 				message : data.message,
-				file : null,
 				time : data.time
 			}, function(){});
 		});
@@ -212,11 +211,12 @@ module.exports = function(server, session){
 		// Fájlküldés emitter
 		socket.on('sendFile', function(data){
 			socket.broadcast.to(data.roomName).emit('sendFile', data);
-			Model.setMessage({
+			Model.setFile({
 				userId : userData.id,
 				room : data.roomName,
-				type : 'file',
-				message : null,
+				store : data.store,
+				fileData : data.fileData,
+				mainType : data.type,
 				file : data.file,
 				time : data.time
 			}, function(){});
