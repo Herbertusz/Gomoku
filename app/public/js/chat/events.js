@@ -139,27 +139,27 @@ CHAT.Events = {
 				files = Array.prototype.slice.call(files);
 			}
 
-			files.forEach(function(file){
+			files.forEach(function(rawFile){
 				let i, errors = [];
 				let data = {
 					id : CHAT.USER.id,
 					fileData : {
-						name : file.name,
-						size : file.size,
-						type : file.type
+						name : rawFile.name,
+						size : rawFile.size,
+						type : rawFile.type
 					},
-					file : null,
+					file : null,  // base64
 					store : store,
 					type : '',
 					time : Math.round(Date.now() / 1000),
 					roomName : $box.data("room")
 				};
 
-				if (file.size > maxSize){
+				if (rawFile.size > maxSize){
 					errors.push("size");
 				}
 				for (i in extensions){
-					if (extensions[i].test(file.type)){
+					if (extensions[i].test(rawFile.type)){
 						data.type = i;
 						break;
 					}
@@ -175,32 +175,41 @@ CHAT.Events = {
 					reader = new FileReader();
 					reader.onload = (function(data){
 						return function(){
-							data.file = reader.result;
-							element[types[mainType].attr] = data.file;
-							CHAT.Method.appendFile($box, data, true);
+							let base64 = reader.result;
+							element[types[mainType].attr] = base64;
 
 							if (store === 'base64'){
 								// base64 tárolása db-ben
+								data.file = base64;
+								CHAT.Method.appendFile($box, data, true);
 								CHAT.socket.emit('sendFile', data);
 							}
 							else if (store === 'upload'){
 								// fájlfeltöltés, url tárolása db-ben
+								// TODO: progressbar
 								let xhr = new XMLHttpRequest();
-								xhr.onload = function(){
-									;
-								};
 								xhr.open("POST", "/chat/uploadfile");
-								xhr.send(data.file);
+								xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+								xhr.setRequestHeader('X-File-Name', encodeURIComponent(data.fileData.name));
+								xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+								xhr.onload = function(){
+									let response = JSON.parse(xhr.responseText);
+									data.file = response.filePath;
+									CHAT.Method.appendFile($box, data, true);
+									CHAT.socket.emit('sendFile', data);
+								};
+								xhr.send(rawFile);
 							}
 							else if (store === 'zip'){
 								// tömörített base64 tárolása db-ben
-								CHAT.lzma.compress(data.file, 1, function(result, error){
+								CHAT.lzma.compress(base64, 1, function(result, error){
 									if (error){
 										console.log(error);
 									}
 									else{
 										data.file = result;
 									}
+									CHAT.Method.appendFile($box, data, true);
 									CHAT.socket.emit('sendFile', data);
 								}, function(percent){
 									// TODO: progressbar
@@ -208,7 +217,7 @@ CHAT.Events = {
 							}
 						};
 					})(data);
-					reader.readAsDataURL(file);
+					reader.readAsDataURL(rawFile);
 				}
 				else{
 					CHAT.Method.showError($box, errors);

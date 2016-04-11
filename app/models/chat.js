@@ -123,14 +123,13 @@ var Model = {
 			});
 		}
 		else if (data.store === 'upload'){
-			// TODO
 			DB.insert('chat_files', {
 				'name' : data.fileData.name,
 				'size' : data.fileData.size,
 				'type' : data.fileData.type,
 				'main_type' : data.mainType,
 				'store' : data.store,
-				'url' : ''
+				'url' : data.file
 			}, function(error, result){
 				if (error) throw error;
 				messageForFile(data, result.insertId);

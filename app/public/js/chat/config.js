@@ -9,7 +9,7 @@ var CHAT = window.CHAT || {};
 CHAT.Config = {
 	fileTransfer : {
 		allowed : true,
-		store : 'base64',   // 'base64'|'upload'|'zip'
+		store : 'upload',  // 'base64'|'upload'|'zip'
 		multiple : false,
 		types : {
 			image : {tag : "img", attr : "src"},
