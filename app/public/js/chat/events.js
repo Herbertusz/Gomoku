@@ -186,15 +186,23 @@ CHAT.Events = {
 							}
 							else if (store === 'upload'){
 								// fájlfeltöltés, url tárolása db-ben
-								// TODO: progressbar
+								let fileData = JSON.stringify(data);
 								let xhr = new XMLHttpRequest();
 								xhr.open("POST", "/chat/uploadfile");
 								xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-								xhr.setRequestHeader('X-File-Name', encodeURIComponent(data.fileData.name));
+								xhr.setRequestHeader('X-File-Data', encodeURIComponent(fileData));
 								xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+								CHAT.Method.progressbar($box, data, "send", 0, true);
+								xhr.upload.onprogress = function(event){
+									if (event.lengthComputable){
+										let percent = event.loaded / event.total;
+										CHAT.Method.progressbar($box, data, "send", Math.round(percent * 100));
+									}
+								};
 								xhr.onload = function(){
 									let response = JSON.parse(xhr.responseText);
 									data.file = response.filePath;
+									CHAT.Method.progressbar($box, data, "send", 100);
 									CHAT.Method.appendFile($box, data, true);
 									CHAT.socket.emit('sendFile', data);
 								};
@@ -469,6 +477,13 @@ CHAT.Events = {
 			CHAT.Method.stopWrite($box, data.id, '');
 			window.clearInterval(CHAT.timer.writing.timerID);
 			CHAT.timer.writing.timerID = null;
+		},
+
+		fileReceive : function(data){
+			var $box = $(CHAT.DOM.box).filter('[data-room="' + data.roomName + '"]');
+			if (CHAT.USER.id !== data.userId){
+				CHAT.Method.progressbar($box, data, "get", Math.round((data.uploadedSize / data.fileSize) * 100), data.firstSend);
+			}
 		},
 
 		/**

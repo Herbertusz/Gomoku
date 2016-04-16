@@ -224,7 +224,7 @@ aside.online {
 					color: #ff0000;
 				}
 
-				span {
+				.time {
 					float: right;
 					margin: 0 0 0 20px;
 					color: #aaaaaa;
@@ -233,6 +233,37 @@ aside.online {
 				.send-image {
 					max-width: 100%;
 					max-height: 120px;
+				}
+
+				.progressbar {
+
+					.label {
+						display: block;
+					}
+
+					.linecontainer {
+						display: inline-block;
+						padding: 1px;
+						width: 220px;
+						height: 10px;
+						border: 1px solid #000000;
+
+						.line {
+							display: inline-block;
+							float: left;
+							height: 6px;
+							background-color: #009eff;
+
+							&.finished {
+								//background-color: #029500;
+							}
+						}
+					}
+
+					.numeric {
+						display: inline-block;
+						margin-left: 5px;
+					}
 				}
 			}
 		}

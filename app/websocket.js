@@ -60,6 +60,7 @@ module.exports = function(server, session){
 		}
 		rooms.forEach(function(room, index){
 			if (room.userIds.length === 0 || HD.Math.Set.intersection(room.userIds, onlineUserIds).length === 0){
+				// TODO fájlok törlése
 				deleted.push(room.name);
 				rooms.splice(index, 1);
 			}
@@ -227,5 +228,7 @@ module.exports = function(server, session){
 			socket.broadcast.to(data.roomName).emit('typeMessage', data);
 		});
 	});
+	
+	return io;
 
 };

@@ -27,7 +27,7 @@ CHAT.Method = {
 		var userName = CHAT.Method.getUserName(data.id);
 		$list.append(`
 			<li>
-				<span>${time}</span>
+				<span class="time">${time}</span>
 				<strong class="${highlighted ? "self" : ""}">${CHAT.Util.escapeHtml(userName)}</strong>:
 				<br />${CHAT.Util.escapeHtml(data.message)}
 			</li>
@@ -81,6 +81,7 @@ CHAT.Method = {
 	 * 		},
 	 * 		file : String,
 	 * 		store : String,
+	 * 		type : String,
 	 * 		time : Number,
 	 * 		roomName : String
 	 * }
@@ -93,7 +94,7 @@ CHAT.Method = {
 		var userName = CHAT.Method.getUserName(data.id);
 		var $listItem = $(`
 			<li>
-				<span>${time}</span>
+				<span class="time">${time}</span>
 				<strong class="${highlighted ? "self" : ""}">${CHAT.Util.escapeHtml(userName)}</strong>:
 				<br />
 				<div class="filedisplay"></div>
@@ -124,6 +125,36 @@ CHAT.Method = {
 			CHAT.Util.scrollToBottom($box);
 		};
 		img.src = imgSrc;
+	},
+
+	progressbar : function($box, data, direction, percent, newBar){
+		newBar = HD.Misc.funcParam(newBar, false);
+		var $list = $box.find(CHAT.DOM.list);
+		var label = direction === "send" ? 'Fájlküldés' : 'Fájlfogadás';
+		var tpl = `
+			<li>
+				<div class="progressbar">
+					<span class="label">${label}...</span>
+					<span class="linecontainer">
+						<span class="line" style="width: ${percent}%"></span>
+					</span>
+					<span class="numeric">${percent}%</span>
+				</div>
+			</li>
+		`;
+		if (newBar){
+			$list.append(tpl);
+			CHAT.Util.scrollToBottom($box);
+		}
+		else{
+			let $progressbar = $list.find('.progressbar').last();
+			if (percent === 100){
+				$progressbar.find('.label').html(`${label} befejeződött`);
+				$progressbar.find('.line').addClass('finished');
+			}
+			$progressbar.find('.line').css("width", percent.toString() + "%");
+			$progressbar.find('.numeric').html(percent.toString() + "%");
+		}
 	},
 
 	/**

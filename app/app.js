@@ -41,7 +41,8 @@ require(appRoot + '/app/layout.js')(app);
 
 // Websocket
 server = http.createServer(app);
-require(appRoot + '/app/websocket.js')(server, session);
+var io = require(appRoot + '/app/websocket.js')(server, session);
+app.set('io', io);
 
 // Route
 routes = [

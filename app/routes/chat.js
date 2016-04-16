@@ -5,6 +5,7 @@ var router = express.Router();
 var session = require('express-session');
 var fs = require('fs');
 var Model = require(appRoot + '/app/models/chat.js');
+var HD = require(appRoot + '/libs/hd/hd.math.js');
 
 router.get('/', function(req, res, next){
 
@@ -33,14 +34,25 @@ router.post('/getroommessages', function(req, res, next){
 
 router.post('/uploadfile', function(req, res, next){
 
-	if (req.xhr){
-		var fileName = Date.now().toString() + '.' + req.header('x-file-name').split('.').pop();
-		var fileStream = fs.createWriteStream(appRoot + '/app/public/upload/' + fileName);
+	var io = req.app.get('io');
 
-		req.on('data', function(data){
-			// TODO: szerver-oldali progressbar
-			console.log('DATA');
-			fileStream.write(data);
+	if (req.xhr){
+		var data = JSON.parse(decodeURIComponent(req.header('X-File-Data')));
+		var fileName = Date.now().toString() + '-' + HD.Math.rand(100, 999) + '.' + data.fileData.name.split('.').pop();
+		var fileStream = fs.createWriteStream(appRoot + '/app/public/upload/' + fileName);
+		var uploadedSize = 0;
+
+		req.on('data', function(file){
+			var first = (uploadedSize === 0);
+			uploadedSize += file.byteLength;
+			io.of('/chat').to(data.roomName).emit('fileReceive', {
+				roomName : data.roomName,
+				userId : Number.parseInt(data.id),
+				uploadedSize : uploadedSize,
+				fileSize : Number.parseInt(data.fileData.size),
+				firstSend : first
+			});
+			fileStream.write(file);
 		});
 		req.on('end', function(){
 			res.send({
